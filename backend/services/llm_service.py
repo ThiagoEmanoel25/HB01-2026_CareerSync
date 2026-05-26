@@ -1,4 +1,6 @@
 import json
+import logging
+from collections import Counter
 
 from fastapi import HTTPException
 from openai import AsyncOpenAI, OpenAIError
@@ -7,6 +9,7 @@ from core.config import settings
 from models.schemas import (
     AnalyzeResponse,
     ContextResponse,
+    Gap,
     InterviewEvaluateResponse,
     InterviewStartResponse,
     LeetCodeEvaluateResponse,
@@ -24,6 +27,8 @@ from services.prompts import (
     PITCH_SYSTEM_PROMPT,
     ROADMAP_SYSTEM_PROMPT,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LLMService:
@@ -66,15 +71,52 @@ class LLMService:
         )
         return AnalyzeResponse(**data)
 
-    async def generate_roadmap(self, gaps_json: str, job_title: str) -> list[RoadmapTask]:
+    def _validate_roadmap(self, tasks: list[RoadmapTask], gaps: list[Gap]) -> None:
+        valid_categories = {"conceito", "pratica", "revisao"}
+        valid_gap_ids = {g.id for g in gaps}
+
+        tasks_per_day: Counter[int] = Counter(t.day for t in tasks)
+        for day, count in tasks_per_day.items():
+            if count > 2:
+                logger.warning("Roadmap inválido: dia %d tem %d tarefas", day, count)
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Roadmap inválido: dia {day} tem {count} tarefas (máximo 2).",
+                )
+
+        critical_ids = {g.id for g in gaps if g.level == "critical"}
+        covered_ids = {t.gap_id for t in tasks}
+        missing = critical_ids - covered_ids
+        if missing:
+            logger.warning("Roadmap inválido: gaps críticos ausentes: %s", missing)
+            raise HTTPException(
+                status_code=502,
+                detail="Roadmap inválido: nem todos os gaps críticos foram cobertos.",
+            )
+
+        for t in tasks:
+            if t.category not in valid_categories:
+                logger.warning("Roadmap inválido: categoria '%s'", t.category)
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Roadmap inválido: categoria '{t.category}' não é permitida.",
+                )
+            if t.gap_id not in valid_gap_ids:
+                logger.warning("Roadmap inválido: gap_id '%s' não corresponde a nenhum gap", t.gap_id)
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Roadmap inválido: gap_id '{t.gap_id}' não corresponde a nenhum gap de entrada.",
+                )
+
+    async def generate_roadmap(self, gaps: list[Gap], job_title: str) -> list[RoadmapTask]:
+        gaps_json = json.dumps([g.model_dump() for g in gaps], ensure_ascii=False)
         data = await self._chat_json(
             ROADMAP_SYSTEM_PROMPT,
             f"Job title: {job_title}\n\nGaps:\n{gaps_json}",
         )
-        # O prompt garante o envelope {"tasks": [...]}; .get com [] evita KeyError
-        # se o modelo, em casos raros, omitir a chave.
-        tasks = data.get("tasks", [])
-        return [RoadmapTask(**t) for t in tasks]
+        tasks = [RoadmapTask(**t) for t in data.get("tasks", [])]
+        self._validate_roadmap(tasks, gaps)
+        return tasks
 
     async def get_context(self, skill: str) -> ContextResponse:
         data = await self._chat_json(

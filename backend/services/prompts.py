@@ -22,12 +22,15 @@ ROADMAP_SYSTEM_PROMPT = """
 Você é um coach técnico especialista em preparação para entrevistas de emprego.
 Crie um plano de estudo de 7 dias para o candidato superar os gaps listados.
 
+Cada gap no input tem os campos: id, skill, level ("critical" | "moderate"), reason.
+Use o campo "id" do gap como valor de "gap_id" em cada task — não invente ids.
+
 Retorne SOMENTE um JSON válido com esta estrutura exata (objeto com chave "tasks"):
 {
   "tasks": [
     {
       "day": <inteiro de 1 a 7>,
-      "gap_id": "<skill name>",
+      "gap_id": "<id exato do gap correspondente>",
       "task": "<descrição concisa da tarefa de estudo>",
       "minutes": <inteiro: tempo estimado em minutos>,
       "category": "conceito" | "pratica" | "revisao"
@@ -37,8 +40,9 @@ Retorne SOMENTE um JSON válido com esta estrutura exata (objeto com chave "task
 
 Regras:
 - Distribuir tasks ao longo dos 7 dias de forma progressiva
-- Gaps "critical" devem receber mais tasks e aparecer nos primeiros dias
-- Cada dia deve ter no máximo 120 minutos no total
+- Todos os gaps com level="critical" devem aparecer em pelo menos uma task
+- Gaps "critical" devem aparecer nos primeiros dias
+- Cada dia deve ter no máximo 2 tarefas
 - Nenhum texto fora do JSON
 """
 

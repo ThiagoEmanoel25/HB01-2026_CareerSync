@@ -5,6 +5,7 @@ const API = import.meta.env.VITE_API_URL as string;
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface Gap {
+  id: string;
   skill: string;
   level: "critical" | "moderate";
   reason: string;
@@ -87,12 +88,21 @@ export function useAnalyze() {
 
 export function useGenerateRoadmap() {
   return useMutation({
-    mutationFn: (body: { gaps: Gap[]; job_title: string }) =>
+    mutationFn: (body: { session_id: string; gaps: Gap[]; job_title: string }) =>
       apiRequest<RoadmapTask[]>(`${API}/roadmap`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }),
+  });
+}
+
+export function useGetRoadmap(sessionId: string) {
+  return useQuery({
+    queryKey: ["roadmap", sessionId],
+    queryFn: () => apiRequest<RoadmapTask[]>(`${API}/roadmap/${sessionId}`),
+    enabled: !!sessionId,
+    retry: false,
   });
 }
 

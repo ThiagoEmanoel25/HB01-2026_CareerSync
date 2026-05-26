@@ -11,7 +11,8 @@ export function UploadPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [jobText, setJobText] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [fileName, setFileName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const setAnalysis = useSession((s) => s.setAnalysis);
   const setSessionJobTitle = useSession((s) => s.setJobTitle);
@@ -19,15 +20,31 @@ export function UploadPage() {
 
   const { mutate: analyze, isPending, error, data } = useAnalyze();
 
+  function isPdf(file: File) {
+    return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  }
+
+  function selectFile(file?: File) {
+    if (!file || !isPdf(file)) return;
+    setSelectedFile(file);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(false);
+    selectFile(e.dataTransfer.files[0]);
+  }
+
+  
+  const sessionID = useSession((s) => s.sessionId);
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const file = fileRef.current?.files?.[0];
-    if (!file || !jobText.trim()) return;
+    if (!selectedFile || !jobText.trim()) return;
 
     const form = new FormData();
-    form.append("pdf_file", file);
+    form.append("pdf_file", selectedFile);
     form.append("job_text", jobText);
-
+    form.append("session_id", sessionID);
     analyze(form, {
       onSuccess: (res) => {
         setAnalysis(res.match_score, res.gaps);
@@ -51,13 +68,24 @@ export function UploadPage() {
               Currículo (PDF)
             </label>
             <div
-              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-400 transition"
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${
+                isDragging
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-gray-300 hover:border-indigo-400"
+              }`}
               onClick={() => fileRef.current?.click()}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
             >
-              {fileName ? (
-                <p className="text-indigo-700 font-medium">{fileName}</p>
+              {selectedFile ? (
+                <p className="text-indigo-700 font-medium">{selectedFile.name}</p>
               ) : (
-                <p className="text-gray-400">Clique para selecionar um PDF</p>
+                <p className="text-gray-400">Clique ou arraste um PDF aqui</p>
               )}
             </div>
             <input
@@ -65,7 +93,7 @@ export function UploadPage() {
               type="file"
               accept="application/pdf"
               className="hidden"
-              onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+              onChange={(e) => selectFile(e.target.files?.[0])}
             />
           </div>
 
@@ -103,7 +131,7 @@ export function UploadPage() {
 
           <button
             type="submit"
-            disabled={isPending || !fileName || !jobText.trim()}
+            disabled={isPending || !selectedFile || !jobText.trim()}
             className="bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             {isPending ? "Analisando..." : "Analisar Match"}
@@ -119,7 +147,7 @@ export function UploadPage() {
             <div className="flex flex-col gap-3">
               {data.gaps.map((gap) => (
                 <GapCard
-                  key={gap.skill}
+                  key={gap.id}
                   skill={gap.skill}
                   level={gap.level}
                   reason={gap.reason}

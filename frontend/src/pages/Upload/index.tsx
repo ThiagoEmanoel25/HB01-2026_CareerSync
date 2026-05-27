@@ -19,7 +19,7 @@ export function UploadPage() {
 
   const { mutate: analyze, isPending, error, data } = useAnalyze();
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     const file = fileRef.current?.files?.[0];
     if (!file || !jobText.trim()) return;
@@ -39,11 +39,10 @@ export function UploadPage() {
   return (
     <div className="flex flex-col items-center py-16 px-4">
       <div className="w-full">
-        <h1 className="text-4xl font-bold text-[#ffffff] mb-2">Prep AI</h1>
-        <p className="text-[#9a9a9a] mb-10">
+        <h1 className="text-2xl text-white mb-6">
           Envie seu currículo e a descrição da vaga para descobrir seu match e
           começar a se preparar.
-        </p>
+        </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* PDF upload */}
@@ -52,11 +51,11 @@ export function UploadPage() {
               Currículo (PDF)
             </label>
             <div
-              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-400 transition"
+              className="bg-[#202020] border-2 border-dashed border-gray-400 rounded-xl p-8 text-center cursor-pointer hover:border-[#3ecf8e] transition"
               onClick={() => fileRef.current?.click()}
             >
               {fileName ? (
-                <p className="text-indigo-700 font-medium">{fileName}</p>
+                <p className="text-[#3ecf8e] font-medium">{fileName}</p>
               ) : (
                 <p className="text-gray-400">Clique para selecionar um PDF</p>
               )}
@@ -80,7 +79,7 @@ export function UploadPage() {
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               placeholder="Ex: Software Engineer L4"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full bg-[#202020] text-gray-50 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#3ecf8e]"
             />
           </div>
 
@@ -94,7 +93,7 @@ export function UploadPage() {
               onChange={(e) => setJobText(e.target.value)}
               rows={8}
               placeholder="Cole aqui o texto completo da descrição da vaga..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full bg-[#202020] text-gray-50 rounded-lg px-4 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#3ecf8e]"
             />
           </div>
 
@@ -105,7 +104,7 @@ export function UploadPage() {
           <button
             type="submit"
             disabled={isPending || !fileName || !jobText.trim()}
-            className="bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="bg-[#3ecf8e] text-white font-semibold py-3 rounded-xl hover:bg-[#36b37e] disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             {isPending ? "Analisando..." : "Analisar Match"}
           </button>

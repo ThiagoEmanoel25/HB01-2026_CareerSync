@@ -18,10 +18,11 @@ export interface RoadmapTask {
 interface SessionState {
   sessionId: string;
   matchScore: number | null;
+  summary: string;
   gaps: Gap[];
   jobTitle: string;
   roadmap: RoadmapTask[];
-  setAnalysis: (score: number, gaps: Gap[]) => void;
+  setAnalysis: (score: number, gaps: Gap[], summary: string) => void;
   setJobTitle: (title: string) => void;
   setRoadmap: (tasks: RoadmapTask[]) => void;
   reset: () => void;
@@ -32,16 +33,18 @@ export const useSession = create<SessionState>()(
     (set) => ({
       sessionId: crypto.randomUUID(),
       matchScore: null,
+      summary: "",
       gaps: [],
       jobTitle: "",
       roadmap: [],
-      setAnalysis: (score, gaps) => set({ matchScore: score, gaps }),
+      setAnalysis: (score, gaps, summary) => set({ matchScore: score, gaps, summary }),
       setJobTitle: (title) => set({ jobTitle: title }),
       setRoadmap: (tasks) => set({ roadmap: tasks }),
       reset: () =>
         set({
           sessionId: crypto.randomUUID(),
           matchScore: null,
+          summary: "",
           gaps: [],
           jobTitle: "",
           roadmap: [],

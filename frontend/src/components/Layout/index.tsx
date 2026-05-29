@@ -35,12 +35,12 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: <ScrollText {...NAVIGATION_ICONS_SIZE} />,
   },
   {
-    label: "Plano de estudos",
+    label: "Plano de Estudos",
     to: "/roadmap",
     icon: <Map {...NAVIGATION_ICONS_SIZE} />,
   },
   {
-    label: "LeetCode",
+    label: "Desafios Técnicos",
     to: "/leetcode",
     icon: <Code {...NAVIGATION_ICONS_SIZE} />,
   },

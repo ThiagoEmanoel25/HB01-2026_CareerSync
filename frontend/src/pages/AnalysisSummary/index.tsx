@@ -8,20 +8,37 @@ import { useSession } from "../../store/session";
 const TypingIndicator = () => (
   <div className="bg-[#202020] border border-gray-700 p-4 rounded-2xl rounded-tl-none self-start mb-6 flex items-center justify-center w-16 shadow-sm">
     <div className="flex gap-1.5">
-      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+      <div
+        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+        style={{ animationDelay: "0ms" }}
+      ></div>
+      <div
+        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+        style={{ animationDelay: "150ms" }}
+      ></div>
+      <div
+        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+        style={{ animationDelay: "300ms" }}
+      ></div>
     </div>
   </div>
 );
 
-const AiBubble = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-[#202020] border border-gray-700 p-5 rounded-2xl rounded-tl-none self-start w-[90%] md:w-[85%] mb-6 shadow-sm transform transition-all duration-500 ease-out ${className}`}>
+const AiBubble = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div
+    className={`bg-[#202020] border border-gray-700 p-5 rounded-2xl rounded-tl-none self-start w-[90%] md:w-[85%] mb-6 shadow-sm transform transition-all duration-500 ease-out ${className}`}
+  >
     {children}
   </div>
 );
 
-export function AnalysisPage() {
+export function AnalysisSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,42 +78,55 @@ export function AnalysisPage() {
   if (matchScore === null) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-gray-400">Nenhuma análise encontrada. Volte e envie seu currículo.</p>
+        <p className="text-gray-400">
+          Nenhuma análise encontrada. Volte e envie seu currículo.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col pb-12 px-2 md:px-0">
-      
       <header className="mb-8 border-b border-gray-800 pb-6 text-center">
         <h1 className="text-2xl text-white font-semibold">Análise de Perfil</h1>
-        <p className="text-gray-400 mt-1 text-sm">Prep AI - O seu assistente de carreira</p>
+        <p className="text-gray-400 mt-1 text-sm">
+          Prep AI - O seu assistente de carreira
+        </p>
       </header>
 
       <div className="flex flex-col w-full">
-        
         <div className="bg-[#3ecf8e]/10 border border-[#3ecf8e]/20 p-5 rounded-2xl rounded-tr-none self-end w-[90%] md:w-[75%] mb-6 shadow-sm">
           <p className="text-gray-200 mb-3 text-sm md:text-base leading-relaxed">
-            Esse é o <span className="font-bold text-white">meu currículo</span>:{" "}
+            Esse é o <span className="font-bold text-white">meu currículo</span>
+            :{" "}
             {fileName ? (
               <span className="text-[#3ecf8e] font-medium">{fileName}</span>
             ) : (
-              <span className="text-gray-500 italic">(nenhum ficheiro enviado)</span>
+              <span className="text-gray-500 italic">
+                (nenhum ficheiro enviado)
+              </span>
             )}
           </p>
           <p className="text-gray-200 mb-3 text-sm md:text-base leading-relaxed">
-            Quero me candidatar para a vaga de: <span className="font-bold text-[#3ecf8e]">{jobTitle || "Não especificada"}</span>
+            Quero me candidatar para a vaga de:{" "}
+            <span className="font-bold text-[#3ecf8e]">
+              {jobTitle || "Não especificada"}
+            </span>
           </p>
           <div className="text-gray-200 text-sm md:text-base leading-relaxed bg-[#1a1a1a]/50 p-4 rounded-xl border border-[#3ecf8e]/10 mt-4">
-            <span className="text-gray-400 block mb-2 text-xs uppercase tracking-wider font-bold">Descrição fornecida:</span>
+            <span className="text-gray-400 block mb-2 text-xs uppercase tracking-wider font-bold">
+              Descrição fornecida:
+            </span>
             {!expanded ? (
               <>
                 {jobDescription && jobDescription.length > 150
                   ? `${jobDescription.slice(0, 150)}...`
                   : jobDescription}
                 {jobDescription && jobDescription.length > 150 && (
-                  <button onClick={() => setExpanded(true)} className="ml-2 text-[#3ecf8e] font-medium hover:underline">
+                  <button
+                    onClick={() => setExpanded(true)}
+                    className="ml-2 text-[#3ecf8e] font-medium hover:underline"
+                  >
                     mostrar mais
                   </button>
                 )}
@@ -104,7 +134,10 @@ export function AnalysisPage() {
             ) : (
               <>
                 {jobDescription}
-                <button onClick={() => setExpanded(false)} className="ml-2 text-[#3ecf8e] font-medium hover:underline block mt-2">
+                <button
+                  onClick={() => setExpanded(false)}
+                  className="ml-2 text-[#3ecf8e] font-medium hover:underline block mt-2"
+                >
                   mostrar menos
                 </button>
               </>
@@ -117,7 +150,8 @@ export function AnalysisPage() {
         {chatStep >= 2 && isNewAnalysis && (
           <AiBubble>
             <p className="text-gray-300 leading-relaxed text-sm md:text-base">
-              Vaga interessante... e o seu currículo é mais interessante ainda! 🧐
+              Vaga interessante... e o seu currículo é mais interessante ainda!
+              🧐
             </p>
           </AiBubble>
         )}
@@ -127,7 +161,8 @@ export function AnalysisPage() {
         {chatStep >= 4 && isNewAnalysis && (
           <AiBubble>
             <p className="text-gray-300 leading-relaxed text-sm md:text-base">
-              Deixa-me olhar com cuidado para começarmos a nossa preparação da melhor forma possível... 🚀
+              Deixa-me olhar com cuidado para começarmos a nossa preparação da
+              melhor forma possível... 🚀
             </p>
           </AiBubble>
         )}
@@ -137,7 +172,9 @@ export function AnalysisPage() {
         {chatStep >= 6 && (
           <AiBubble>
             <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
-              Aqui está o resultado da nossa análise inicial! Este Score indica o quão aderente o seu perfil está em relação às exigências da vaga:
+              Aqui está o resultado da nossa análise inicial! Este Score indica
+              o quão aderente o seu perfil está em relação às exigências da
+              vaga:
             </p>
             <MatchScore score={matchScore} summary={summary} />
           </AiBubble>
@@ -148,7 +185,13 @@ export function AnalysisPage() {
         {chatStep >= 8 && (
           <AiBubble>
             <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
-              Para alcançarmos os 100% (ou chegarmos muito perto disso na entrevista), notei alguns pontos de atenção no seu currículo. Estes são os <span className="text-amber-400 font-bold">principais gaps de conhecimento</span> que precisamos de trabalhar:
+              Para alcançarmos os 100% (ou chegarmos muito perto disso na
+              entrevista), notei alguns pontos de atenção no seu currículo.
+              Estes são os{" "}
+              <span className="text-amber-400 font-bold">
+                principais gaps de conhecimento
+              </span>{" "}
+              que precisamos de trabalhar:
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               {gaps.map((gap) => (
@@ -157,7 +200,9 @@ export function AnalysisPage() {
                   skill={gap.skill}
                   level={gap.level}
                   reason={gap.reason}
-                  onViewContext={(skill) => navigate(`/context/${encodeURIComponent(skill)}`)}
+                  onViewContext={(skill) =>
+                    navigate(`/context/${encodeURIComponent(skill)}`)
+                  }
                 />
               ))}
             </div>
@@ -169,9 +214,11 @@ export function AnalysisPage() {
         {chatStep >= 10 && (
           <AiBubble className="border-[#3ecf8e]/30 shadow-[0_0_15px_rgba(62,207,142,0.05)]">
             <p className="text-gray-200 font-medium leading-relaxed text-sm md:text-base mb-6">
-              Agora é contigo! Vamos resolver estes débitos técnicos? Preparei ferramentas específicas para cada etapa do seu estudo. Escolha por onde quer começar:
+              Agora é contigo! Vamos resolver estes débitos técnicos? Preparei
+              ferramentas específicas para cada etapa do seu estudo. Escolha por
+              onde quer começar:
             </p>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => navigate("/roadmap")}
@@ -181,8 +228,12 @@ export function AnalysisPage() {
                   <Map size={20} />
                 </div>
                 <div className="text-left flex-1">
-                  <span className="block text-white font-semibold text-sm">Plano de Estudos</span>
-                  <span className="block text-gray-500 text-xs mt-0.5">Roteiro prático de 7 dias</span>
+                  <span className="block text-white font-semibold text-sm">
+                    Plano de Estudos
+                  </span>
+                  <span className="block text-gray-500 text-xs mt-0.5">
+                    Roteiro prático de 7 dias
+                  </span>
                 </div>
               </button>
 
@@ -194,8 +245,12 @@ export function AnalysisPage() {
                   <Code size={20} />
                 </div>
                 <div className="text-left flex-1">
-                  <span className="block text-white font-semibold text-sm">Desafios Técnicos</span>
-                  <span className="block text-gray-500 text-xs mt-0.5">Problemas focados nos gaps</span>
+                  <span className="block text-white font-semibold text-sm">
+                    Desafios Técnicos
+                  </span>
+                  <span className="block text-gray-500 text-xs mt-0.5">
+                    Problemas focados nos gaps
+                  </span>
                 </div>
               </button>
 
@@ -207,8 +262,12 @@ export function AnalysisPage() {
                   <Lightbulb size={20} />
                 </div>
                 <div className="text-left flex-1">
-                  <span className="block text-white font-semibold text-sm">Melhorar Pitch</span>
-                  <span className="block text-gray-500 text-xs mt-0.5">Aprenda a vender as suas forças</span>
+                  <span className="block text-white font-semibold text-sm">
+                    Melhorar Pitch
+                  </span>
+                  <span className="block text-gray-500 text-xs mt-0.5">
+                    Aprenda a vender as suas forças
+                  </span>
                 </div>
               </button>
 
@@ -220,8 +279,12 @@ export function AnalysisPage() {
                   <Mic size={20} />
                 </div>
                 <div className="text-left flex-1">
-                  <span className="block text-white font-semibold text-sm">Simular Entrevista</span>
-                  <span className="block text-gray-500 text-xs mt-0.5">Pratique com IA por voz</span>
+                  <span className="block text-white font-semibold text-sm">
+                    Simular Entrevista
+                  </span>
+                  <span className="block text-gray-500 text-xs mt-0.5">
+                    Pratique com IA por voz
+                  </span>
                 </div>
               </button>
             </div>

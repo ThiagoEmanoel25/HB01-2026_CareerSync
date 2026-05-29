@@ -7,7 +7,7 @@ import { LeetCodePage } from "./pages/LeetCode";
 import { PitchPage } from "./pages/Pitch";
 import { RoadmapPage } from "./pages/Roadmap";
 import { NewAnalysisPage } from "./pages/NewAnalysis";
-import { AnalysisPage } from "./pages/Analysis";
+import { AnalysisSummaryPage } from "./pages/AnalysisSummary";
 import { useSession } from "./store/session";
 import { Layout } from "./components/Layout";
 
@@ -28,10 +28,10 @@ export function AppRouter() {
           <Route path="/new" element={<NewAnalysisPage />} />
 
           <Route
-            path="/analysis"
+            path="/summary"
             element={
               <RequireAnalysis>
-                <AnalysisPage />
+                <AnalysisSummaryPage />
               </RequireAnalysis>
             }
           />

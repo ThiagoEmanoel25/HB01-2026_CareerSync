@@ -31,7 +31,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
   },
   {
     label: "Resumo da análise",
-    to: "/analysis",
+    to: "/summary",
     icon: <ScrollText {...NAVIGATION_ICONS_SIZE} />,
   },
   {

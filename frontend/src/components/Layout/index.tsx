@@ -45,7 +45,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: <Code {...NAVIGATION_ICONS_SIZE} />,
   },
   {
-    label: "Pitch",
+    label: "Melhor Pitch",
     to: "/pitch",
     icon: <Lightbulb {...NAVIGATION_ICONS_SIZE} />,
   },

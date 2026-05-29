@@ -237,7 +237,7 @@ export function Layout() {
                   </div>
 
                   <NavLink
-                    to={`/analysis?session_id=${s.sessionId}`}
+                    to={`/analysis`}
                     onClick={() => {
                       setIsSidebarOpen(false);
                       loadSession(s.sessionId);

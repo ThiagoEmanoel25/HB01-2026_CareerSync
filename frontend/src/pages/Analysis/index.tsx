@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GapCard } from "../../components/GapCard";
 import { MatchScore } from "../../components/MatchScore";
@@ -9,12 +10,70 @@ export function AnalysisPage() {
   const summary = useSession((s) => s.summary);
   const gaps = useSession((s) => s.gaps);
   const jobTitle = useSession((s) => s.jobTitle);
+  const jobDescription = useSession((s) => s.jobDescription);
+  const resumeUrl = useSession((s) => s.resumeUrl);
+
+  const [expanded, setExpanded] = useState(false);
 
   if (matchScore === null) return null;
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col items-center">
       <div className="w-full">
+        <div className="bg-[#202020] p-4 rounded-2xl self-start w-[80%] max-w-full ml-[20%] mb-6 text-left">
+          <p className="text-gray-300 mb-2">
+            Este é o meu currículo:{" "}
+            {resumeUrl ? (
+              <a href={resumeUrl} download className="text-[#3ecf8e] underline">
+                Baixar currículo
+              </a>
+            ) : (
+              <span className="text-gray-500">(nenhum currículo)</span>
+            )}
+          </p>
+
+          <p className="text-gray-300 mb-2">
+            {jobTitle ? (
+              <>
+                Quero me candidatar para a vaga:{" "}
+                <span className="font-bold">{jobTitle}</span>
+              </>
+            ) : (
+              <>Quero me candidatar para uma vaga.</>
+            )}
+          </p>
+
+          <div className="text-gray-300">
+            <div className="mb-1">Esta é a descrição da vaga:</div>
+            <div>
+              {!expanded ? (
+                <>
+                  {jobDescription && jobDescription.length > 120
+                    ? `${jobDescription.slice(0, 120)}...`
+                    : jobDescription}
+                  {jobDescription && jobDescription.length > 120 && (
+                    <button
+                      onClick={() => setExpanded(true)}
+                      className="ml-2 text-sm text-[#3ecf8e] underline"
+                    >
+                      mostrar mais
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {jobDescription}
+                  <button
+                    onClick={() => setExpanded(false)}
+                    className="ml-2 text-sm text-[#3ecf8e] underline"
+                  >
+                    mostrar menos
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
         <h1 className="text-2xl text-white mb-2 font-semibold">
           Análise de Aderência
         </h1>

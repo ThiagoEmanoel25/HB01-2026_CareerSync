@@ -11,6 +11,8 @@ export function UploadPage() {
   const [fileName, setFileName] = useState("");
   const setAnalysis = useSession((s) => s.setAnalysis);
   const setSessionJobTitle = useSession((s) => s.setJobTitle);
+  const setSessionJobDescription = useSession((s) => s.setJobDescription);
+  const setResumeUrl = useSession((s) => s.setResumeUrl);
   const { mutate: analyze, isPending, error } = useAnalyze();
 
   function handleSubmit(e: React.SubmitEvent) {
@@ -24,6 +26,9 @@ export function UploadPage() {
       onSuccess: (res) => {
         setAnalysis(res.match_score, res.gaps, res.summary);
         setSessionJobTitle(jobTitle || "Vaga");
+        setSessionJobDescription(jobText);
+        const objectUrl = URL.createObjectURL(file);
+        setResumeUrl(objectUrl);
         navigate("/analysis");
       },
     });

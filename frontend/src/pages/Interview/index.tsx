@@ -7,13 +7,6 @@ import {
 } from '../../lib/api';
 import { RecruiterQuestions } from '../../components/RecruiterQuestions';
 
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
 const MOCK_QUESTIONS = [
   "Conte-me sobre um momento em que você teve que lidar com um prazo muito apertado e como você gerenciou a situação.",
   "Descreva uma situação onde você discordou de um colega sobre uma decisão técnica. Como vocês resolveram isso?",
@@ -40,17 +33,18 @@ export function InterviewPage() {
       : MOCK_QUESTIONS;
   const question = questions[currentQuestionIndex % questions.length];
   const [evaluation, setEvaluation] = useState<InterviewEvaluateResponse | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'pt-BR';
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'pt-BR';
 
-      recognitionRef.current.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         let currentTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           currentTranscript += event.results[i][0].transcript;
@@ -58,10 +52,12 @@ export function InterviewPage() {
         setTranscript(currentTranscript);
       };
 
-      recognitionRef.current.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error("Erro no reconhecimento de voz:", event.error);
         setIsRecording(false);
       };
+
+      recognitionRef.current = recognition;
     }
   }, []);
 

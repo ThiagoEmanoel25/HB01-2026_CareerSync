@@ -61,6 +61,7 @@ export function Layout() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const resetSession = useSession((s) => s.reset);
   const history = useSession((s) => s.history) || [];
+  const currentSessionId = useSession((s) => s.sessionId);
   const loadSession = useSession((s) => s.loadSession);
   const matchScore = useSession((s) => s.matchScore);
   const hasAnalysis = matchScore !== null;
@@ -148,8 +149,10 @@ export function Layout() {
           </NavLink>
 
           <div
-            className={`px-2 transition-opacity duration-300 ${isDesktopCollapsed ? 
-              "opacity-0 pointer-events-none hidden" : "opacity-100 block"
+            className={`px-2 transition-opacity duration-300 ${
+              isDesktopCollapsed
+                ? "opacity-0 pointer-events-none hidden"
+                : "opacity-100 block"
             }`}
           >
             <h2 className="mt-2 mb-1 text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider">
@@ -177,8 +180,8 @@ export function Layout() {
                     isDisabled
                       ? "opacity-35 cursor-not-allowed text-gray-500 pointer-events-none select-none"
                       : isActive
-                      ? activeLinkStyle
-                      : inactiveLinkStyle
+                        ? activeLinkStyle
+                        : inactiveLinkStyle
                   } ${isDesktopCollapsed ? "justify-center px-0" : "px-3"}`
                 }
               >
@@ -194,75 +197,90 @@ export function Layout() {
         </nav>
 
         <div
-          className={`px-2 transition-opacity duration-300 ${isDesktopCollapsed ? 
-            "opacity-0 pointer-events-none hidden" : "opacity-100 block"}`}
+          className={`px-2 transition-opacity duration-300 ${
+            isDesktopCollapsed
+              ? "opacity-0 pointer-events-none hidden"
+              : "opacity-100 block"
+          }`}
         >
           <h2 className="text-xs px-2 font-semibold text-[#9a9a9a] uppercase tracking-wider">
             Histórico
           </h2>
           <div className="flex flex-col gap-2 mt-3 max-h-[250px] overflow-y-auto pr-1">
             {history.length > 0 ? (
-              history.map((s) => (
-                <div
-                  key={s.sessionId}
-                  className="flex items-center gap-1 w-full group relative rounded-lg hover:bg-white/5 transition-colors"
-                >
-                  <div className="relative z-10 pl-1 flex items-center justify-center">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setOpenMenuId(
-                          openMenuId === s.sessionId ? null : s.sessionId,
-                        );
-                      }}
-                      className="text-[#3ecf8e] hover:text-white rounded transition-colors"
-                    >
-                      <MoreVertical size={14} />
-                    </button>
+              history.map((s) => {
+                const isHistoryActive = s.sessionId === currentSessionId;
 
-                    {openMenuId === s.sessionId && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setOpenMenuId(null)}
-                        />
-
-                        <div className="absolute left-5 bg-[#202020] border border-gray-600 rounded-lg shadow-2xl z-20 min-w-[75px] animate-in fade-in zoom-in-95 duration-150">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-
-                              useSession.setState((state) => ({
-                                history: state.history.filter(
-                                  (item) => item.sessionId !== s.sessionId,
-                                ),
-                              }));
-
-                              setOpenMenuId(null);
-                            }}
-                            className="w-full px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition-colors font-medium"
-                          >
-                            Excluir
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <NavLink
-                    to={`/summary`}
-                    onClick={() => {
-                      setIsSidebarOpen(false);
-                      loadSession(s.sessionId);
-                    }}
-                    className="text-gray-300 hover:text-[#3ecf8e] flex-1 truncate py-1 block text-sm select-none transition-colors"
+                return (
+                  <div
+                    key={s.sessionId}
+                    className={`flex items-center gap-1 w-full group relative rounded-lg transition-colors ${
+                      isHistoryActive
+                        ? "bg-[#3ecf8e]/10 text-[#3ecf8e]"
+                        : "hover:bg-white/5"
+                    }`}
                   >
-                    {s.jobTitle}
-                  </NavLink>
-                </div>
-              ))
+                    <div className="relative z-10 pl-1 flex items-center justify-center">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOpenMenuId(
+                            openMenuId === s.sessionId ? null : s.sessionId,
+                          );
+                        }}
+                        className="text-[#3ecf8e] hover:text-white rounded transition-colors"
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+
+                      {openMenuId === s.sessionId && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setOpenMenuId(null)}
+                          />
+
+                          <div className="absolute left-5 bg-[#202020] border border-gray-600 rounded-lg shadow-2xl z-20 min-w-[75px] animate-in fade-in zoom-in-95 duration-150">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                useSession.setState((state) => ({
+                                  history: state.history.filter(
+                                    (item) => item.sessionId !== s.sessionId,
+                                  ),
+                                }));
+
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition-colors font-medium"
+                            >
+                              Excluir
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <NavLink
+                      to={`/summary`}
+                      onClick={() => {
+                        setIsSidebarOpen(false);
+                        loadSession(s.sessionId);
+                      }}
+                      className={`flex-1 truncate py-1 block text-sm select-none transition-colors ${
+                        isHistoryActive
+                          ? "text-[#3ecf8e]"
+                          : "text-gray-300 hover:text-[#3ecf8e]"
+                      }`}
+                    >
+                      {s.jobTitle}
+                    </NavLink>
+                  </div>
+                );
+              })
             ) : (
               <p className="px-2 text-xs text-gray-600 italic">
                 Nenhuma análise recente

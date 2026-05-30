@@ -145,9 +145,15 @@ export function Layout() {
             </span>
           </NavLink>
 
-          <h2 className="mt-2 mb-1 text-xs px-2 font-semibold text-[#9a9a9a] uppercase tracking-wider">
-            Sua preparação
-          </h2>
+          <div
+            className={`px-2 transition-opacity duration-300 ${isDesktopCollapsed ? 
+              "opacity-0 pointer-events-none hidden" : "opacity-100 block"
+            }`}
+          >
+            <h2 className="mt-2 mb-1 text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider">
+              Sua preparação
+            </h2>
+          </div>
 
           {NAVIGATION_ITEMS.map((item) => (
             <NavLink
@@ -175,7 +181,8 @@ export function Layout() {
         </nav>
 
         <div
-          className={`px-2 transition-opacity duration-300 ${isDesktopCollapsed ? "opacity-0 pointer-events-none hidden" : "opacity-100 block"}`}
+          className={`px-2 transition-opacity duration-300 ${isDesktopCollapsed ? 
+            "opacity-0 pointer-events-none hidden" : "opacity-100 block"}`}
         >
           <h2 className="text-xs px-2 font-semibold text-[#9a9a9a] uppercase tracking-wider">
             Histórico
@@ -254,7 +261,7 @@ export function Layout() {
         <div
           className={`mt-auto text-xs text-[#9a9a9a] px-5 pb-6 transition-all duration-300 ${isDesktopCollapsed ? "text-center px-0" : ""}`}
         >
-          {isDesktopCollapsed ? "©" : "© Prep AI"}
+          {isDesktopCollapsed ? "©" : "© CareerSync"}
         </div>
       </aside>
 

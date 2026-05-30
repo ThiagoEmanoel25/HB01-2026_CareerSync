@@ -40,8 +40,8 @@ export function RoadmapDaysView({
         return (
           <div
             key={day}
-            className={`rounded-xl border bg-white shadow-sm overflow-hidden ${
-              dayDone ? "border-green-300" : "border-gray-200"
+            className={`rounded-xl border bg-[#202020] overflow-hidden ${
+              dayDone ? "border-[#3ecf8e]/40" : "border-gray-700"
             }`}
           >
             <button
@@ -49,27 +49,27 @@ export function RoadmapDaysView({
               onClick={() => toggleDay(day)}
               aria-expanded={isOpen}
               aria-controls={`day-${day}-content`}
-              className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition"
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition"
             >
               <div className="flex items-center gap-3">
                 <span
                   className={`text-sm font-semibold ${
-                    dayDone ? "text-green-700" : "text-gray-800"
+                    dayDone ? "text-[#3ecf8e]" : "text-gray-100"
                   }`}
                 >
                   Dia {day}
                 </span>
                 {dayTasks.length > 0 && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {completed}/{dayTasks.length} concluídas
                   </span>
                 )}
                 {dayDone && (
-                  <span className="text-xs font-medium text-green-700">✓</span>
+                  <span className="text-xs font-medium text-[#3ecf8e]">✓</span>
                 )}
               </div>
               <span
-                className={`text-gray-400 transition-transform ${
+                className={`text-gray-500 transition-transform ${
                   isOpen ? "rotate-180" : ""
                 }`}
                 aria-hidden
@@ -83,7 +83,7 @@ export function RoadmapDaysView({
                 className="p-3 pt-0 flex flex-col gap-2"
               >
                 {dayTasks.length === 0 ? (
-                  <p className="text-sm text-gray-400 px-3 py-2">
+                  <p className="text-sm text-gray-500 px-3 py-2">
                     Sem tarefas neste dia.
                   </p>
                 ) : (

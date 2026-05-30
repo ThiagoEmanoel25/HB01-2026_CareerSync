@@ -12,7 +12,7 @@ export function TaskItem({ task, done, onToggle, onViewContext }: TaskItemProps)
   return (
     <div
       className={`flex items-start gap-3 p-3 rounded-lg border ${
-        done ? "bg-gray-50 border-gray-200" : "bg-white border-gray-200"
+        done ? "bg-[#171717] border-gray-800" : "bg-[#202020] border-gray-700"
       } transition`}
     >
       <label className="flex items-start gap-3 flex-1 cursor-pointer">
@@ -20,12 +20,12 @@ export function TaskItem({ task, done, onToggle, onViewContext }: TaskItemProps)
           type="checkbox"
           checked={done}
           onChange={onToggle}
-          className="mt-1 w-5 h-5 accent-indigo-600 cursor-pointer"
+          className="mt-1 w-5 h-5 accent-[#3ecf8e] cursor-pointer"
         />
         <div className="flex-1 min-w-0">
           <p
             className={`text-sm font-medium ${
-              done ? "line-through text-gray-400" : "text-gray-800"
+              done ? "line-through text-gray-500" : "text-gray-200"
             }`}
           >
             {task.task}
@@ -38,14 +38,14 @@ export function TaskItem({ task, done, onToggle, onViewContext }: TaskItemProps)
             >
               {CATEGORY_LABELS[task.category]}
             </span>
-            <span className="text-xs text-gray-500">{task.minutes} min</span>
+            <span className="text-xs text-gray-400">{task.minutes} min</span>
           </div>
         </div>
       </label>
       <button
         type="button"
         onClick={() => onViewContext(task.gap_id)}
-        className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline whitespace-nowrap mt-1 shrink-0"
+        className="text-xs font-medium text-[#3ecf8e] hover:text-[#3ecf8e]/80 hover:underline whitespace-nowrap mt-1 shrink-0"
       >
         Ver contexto →
       </button>

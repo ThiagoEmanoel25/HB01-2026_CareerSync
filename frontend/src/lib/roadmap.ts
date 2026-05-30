@@ -45,7 +45,7 @@ export const CATEGORY_LABELS: Record<RoadmapTask["category"], string> = {
 };
 
 export const CATEGORY_STYLES: Record<RoadmapTask["category"], string> = {
-  conceito: "bg-blue-100 text-blue-800",
-  pratica: "bg-green-100 text-green-800",
-  revisao: "bg-amber-100 text-amber-800",
+  conceito: "bg-blue-500/10 text-blue-400",
+  pratica: "bg-[#3ecf8e]/10 text-[#3ecf8e]",
+  revisao: "bg-amber-500/10 text-amber-400",
 };

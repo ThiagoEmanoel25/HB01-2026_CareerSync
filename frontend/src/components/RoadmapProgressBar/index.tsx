@@ -12,20 +12,20 @@ export function RoadmapProgressBar({
   const hasProgress = completedDays > 0;
 
   const barColor = isComplete
-    ? "bg-green-500"
+    ? "bg-[#3ecf8e]"
     : hasProgress
-    ? "bg-indigo-500"
-    : "bg-gray-300";
+    ? "bg-[#3ecf8e]/80"
+    : "bg-gray-600";
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div className="bg-[#202020] rounded-xl border border-gray-700 p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-sm font-medium text-gray-200">
           {completedDays} de {totalDays} dias completos
         </p>
-        <span className="text-sm font-semibold text-gray-600">{pct}%</span>
+        <span className="text-sm font-semibold text-[#3ecf8e]">{pct}%</span>
       </div>
-      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="w-full h-2.5 bg-[#171717] rounded-full overflow-hidden">
         <div
           className={`h-full ${barColor} transition-all duration-300`}
           style={{ width: `${pct}%` }}

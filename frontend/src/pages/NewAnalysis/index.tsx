@@ -119,7 +119,7 @@ export function NewAnalysisPage() {
             disabled={isPending || !fileName || !jobText.trim()}
             className="bg-[#3ecf8e] text-black font-bold py-3 mt-2 rounded-xl hover:bg-[#36b37e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {isPending ? "Analisando perfil..." : "Analisar Match"}
+            {isPending ? "Analisando..." : "Analisar Compatibilidade"}
           </button>
         </form>
       </div>

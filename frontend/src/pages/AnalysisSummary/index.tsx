@@ -90,7 +90,7 @@ export function AnalysisSummaryPage() {
       <header className="mb-8 border-b border-gray-800 pb-6 text-center">
         <h1 className="text-2xl text-white font-semibold">Análise de Perfil</h1>
         <p className="text-gray-400 mt-1 text-sm">
-          Prep AI - O seu assistente de carreira
+          CareerSync - Sincronizando você e sua vaga!
         </p>
       </header>
 
@@ -172,7 +172,7 @@ export function AnalysisSummaryPage() {
         {chatStep >= 6 && (
           <AiBubble>
             <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
-              Aqui está o resultado da nossa análise inicial! Este Score indica
+              Aqui está o resultado da nossa análise inicial! Esta pontuação indica
               o quão aderente o seu perfil está em relação às exigências da
               vaga:
             </p>
@@ -187,9 +187,9 @@ export function AnalysisSummaryPage() {
             <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
               Para alcançarmos os 100% (ou chegarmos muito perto disso na
               entrevista), notei alguns pontos de atenção no seu currículo.
-              Estes são os{" "}
+              Estas são as{" "}
               <span className="text-amber-400 font-bold">
-                principais gaps de conhecimento
+                principais falhas de conhecimento
               </span>{" "}
               que precisamos de trabalhar:
             </p>
@@ -249,7 +249,7 @@ export function AnalysisSummaryPage() {
                     Desafios Técnicos
                   </span>
                   <span className="block text-gray-500 text-xs mt-0.5">
-                    Problemas focados nos gaps
+                    Problemas focados em suas falhas
                   </span>
                 </div>
               </button>
@@ -266,7 +266,7 @@ export function AnalysisSummaryPage() {
                     Melhorar Pitch
                   </span>
                   <span className="block text-gray-500 text-xs mt-0.5">
-                    Aprenda a vender as suas forças
+                    Aprenda a se vender melhor
                   </span>
                 </div>
               </button>

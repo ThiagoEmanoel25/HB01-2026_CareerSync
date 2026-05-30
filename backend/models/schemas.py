@@ -94,6 +94,55 @@ class LeetCodeEvaluateResponse(BaseModel):
     optimal_hint: str
 
 
+class ChallengeExample(BaseModel):
+    input: dict
+    expected: object
+    explanation: str | None = None
+
+
+class ChallengeSummary(BaseModel):
+    slug: str
+    title: str
+    difficulty: Literal["Easy", "Medium", "Hard"]
+    category: str
+    reason: str
+
+
+class ChallengeDetail(ChallengeSummary):
+    description: str
+    function_name: str
+    signature: str
+    examples: list[ChallengeExample]
+    constraints: list[str]
+
+
+class ChallengeSubmitRequest(BaseModel):
+    code: str
+
+
+class ChallengeTestFailure(BaseModel):
+    input: dict
+    expected: object
+    actual: object
+
+
+class ChallengeSubmitResponse(BaseModel):
+    passed: bool
+    status: Literal["passed", "failed", "error", "timeout"]
+    total_tests: int
+    passed_count: int
+    first_failure: ChallengeTestFailure | None = None
+    error: str | None = None
+
+
+class ChallengeHintRequest(BaseModel):
+    code: str
+
+
+class ChallengeHintResponse(BaseModel):
+    hint: str
+
+
 class PitchRequest(BaseModel):
     candidate_json: dict
     job_json: dict

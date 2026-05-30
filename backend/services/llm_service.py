@@ -19,6 +19,7 @@ from models.schemas import (
 )
 from services.prompts import (
     ANALYZE_SYSTEM_PROMPT,
+    CHALLENGE_HINT_SYSTEM_PROMPT,
     CONTEXT_SYSTEM_PROMPT,
     INTERVIEW_EVAL_SYSTEM_PROMPT,
     INTERVIEW_QUESTIONS_SYSTEM_PROMPT,
@@ -156,6 +157,22 @@ class LLMService:
             f"Problem: {title} ({slug})\nDescription:\n{description}\nLanguage: {language}\nSolution:\n{solution}",
         )
         return LeetCodeEvaluateResponse(**data)
+
+    async def generate_challenge_hint(self, challenge: object, code: str) -> str:
+        data = await self._chat_json(
+            CHALLENGE_HINT_SYSTEM_PROMPT,
+            "\n\n".join([
+                f"Title: {challenge.title}",
+                f"Category: {challenge.category}",
+                f"Description:\n{challenge.description}",
+                f"Required signature:\n{challenge.signature}",
+                f"Current code:\n{code}",
+            ]),
+        )
+        hint = data.get("hint")
+        if not isinstance(hint, str) or not hint.strip():
+            raise HTTPException(status_code=502, detail="Resposta inválida do serviço de IA.")
+        return hint
 
     async def generate_pitch(self, candidate_json: dict, job_json: dict) -> list[PitchCard]:
         # json já está importado no topo do módulo — import local era desnecessário.

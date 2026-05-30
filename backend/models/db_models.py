@@ -6,12 +6,7 @@ from sqlmodel import Field, SQLModel
 
 
 class Analysis(SQLModel, table=True):
-    """Entidade única que concentra o ciclo de vida de uma análise.
-
-    O PDF e o texto extraído do currículo são gravados no POST /analysis.
-    Os campos de artefato (summary, roadmap, ...) começam nulos e são
-    preenchidos sob demanda via cache-or-generate (ver get_or_generate).
-    """
+    """Entidade única que concentra o ciclo de vida de uma análise."""
 
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     job_title: str

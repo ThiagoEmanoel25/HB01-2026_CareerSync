@@ -1,8 +1,7 @@
-import base64
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Response, UploadFile
 from sqlmodel import Session
 
 from core.database import get_session
@@ -19,6 +18,7 @@ from models.schemas import (
     LeetCodeEvaluateResponse,
     LeetCodeProblem,
     PitchCard,
+    ResumeMeta,
     RoadmapTask,
 )
 from services.llm_service import LLMService
@@ -27,7 +27,12 @@ from services.pdf_service import PDFService
 router = APIRouter(tags=["analysis"])
 
 
-# ── Helpers de cache ──────────────────────────────────────────────────────────
+def _get_analysis_or_404(db: Session, analysis_id: str) -> Analysis:
+    analysis = db.get(Analysis, analysis_id)
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="Análise não encontrada.")
+    return analysis
+
 
 async def get_or_generate(
     db: Session,
@@ -35,10 +40,7 @@ async def get_or_generate(
     field_name: str,
     generate_fn: Callable[[Analysis], Awaitable[Any]],
 ) -> Any:
-    """Retorna o campo `field_name` da Analysis; gera via LLM e persiste se nulo."""
-    analysis = db.get(Analysis, analysis_id)
-    if analysis is None:
-        raise HTTPException(status_code=404, detail="Análise não encontrada.")
+    analysis = _get_analysis_or_404(db, analysis_id)
 
     cached = getattr(analysis, field_name)
     if cached is not None:
@@ -53,10 +55,12 @@ async def get_or_generate(
 
 
 async def _ensure_summary(db: Session, analysis: Analysis, llm: LLMService) -> dict:
-    """Garante que o summary exista (artefato base do qual outros dependem)."""
     if analysis.summary is None:
-        job_text = f"{analysis.job_title}\n\n{analysis.job_description}"
-        result = await llm.analyze(analysis.resume_text, job_text)
+        result = await llm.summarize_analysis(
+            resume_text=analysis.resume_text,
+            job_title=analysis.job_title,
+            job_description=analysis.job_description,
+        )
         analysis.summary = result.model_dump()
         db.add(analysis)
         db.commit()
@@ -69,8 +73,6 @@ async def _ensure_gaps(db: Session, analysis: Analysis, llm: LLMService) -> list
     return [Gap(**g) for g in summary["gaps"]]
 
 
-# ── Ciclo de vida da análise ──────────────────────────────────────────────────
-
 @router.post("/analysis", response_model=AnalysisCreateResponse, status_code=201)
 async def create_analysis(
     resume: UploadFile,
@@ -79,11 +81,7 @@ async def create_analysis(
     pdf_svc: PDFService = Depends(),
     db: Session = Depends(get_session),
 ) -> AnalysisCreateResponse:
-    if resume.content_type not in ("application/pdf", "application/octet-stream"):
-        raise HTTPException(status_code=422, detail="Arquivo deve ser um PDF válido.")
-
-    contents = await resume.read()
-    resume_text = pdf_svc.extract_from_bytes(contents)
+    resume_text, contents = await pdf_svc.extract_with_bytes(resume)
 
     analysis = Analysis(
         job_title=job_title,
@@ -103,18 +101,31 @@ def get_analysis(
     analysis_id: str,
     db: Session = Depends(get_session),
 ) -> AnalysisDetailResponse:
-    analysis = db.get(Analysis, analysis_id)
-    if analysis is None:
-        raise HTTPException(status_code=404, detail="Análise não encontrada.")
+    analysis = _get_analysis_or_404(db, analysis_id)
 
     return AnalysisDetailResponse(
         job_title=analysis.job_title,
         job_description=analysis.job_description,
-        resume=base64.b64encode(analysis.resume).decode("ascii"),
+        resume=ResumeMeta(
+            filename="resume.pdf",
+            content_type="application/pdf",
+            url=f"/analysis/{analysis.id}/resume",
+        ),
     )
 
 
-# ── Artefatos com cache (gerados sob demanda) ─────────────────────────────────
+@router.get("/analysis/{analysis_id}/resume")
+def get_resume(
+    analysis_id: str,
+    db: Session = Depends(get_session),
+) -> Response:
+    analysis = _get_analysis_or_404(db, analysis_id)
+    return Response(
+        content=analysis.resume,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'inline; filename="resume.pdf"'},
+    )
+
 
 @router.get("/analysis/{analysis_id}/summary", response_model=AnalyzeResponse)
 async def get_summary(
@@ -123,8 +134,11 @@ async def get_summary(
     db: Session = Depends(get_session),
 ) -> Any:
     async def generate(analysis: Analysis) -> dict:
-        job_text = f"{analysis.job_title}\n\n{analysis.job_description}"
-        result = await llm.analyze(analysis.resume_text, job_text)
+        result = await llm.summarize_analysis(
+            resume_text=analysis.resume_text,
+            job_title=analysis.job_title,
+            job_description=analysis.job_description,
+        )
         return result.model_dump()
 
     return await get_or_generate(db, analysis_id, "summary", generate)
@@ -152,12 +166,11 @@ async def get_code_challenges(
 ) -> Any:
     async def generate(analysis: Analysis) -> list[dict]:
         gaps = await _ensure_gaps(db, analysis, llm)
-        # Inputs derivados da própria análise: a stack vem do título da vaga e
-        # os gaps das skills identificadas no summary. Seniority não é capturada
-        # hoje, então é deixada em branco (o prompt já lida com contexto parcial).
         gaps_str = ", ".join(g.skill for g in gaps)
         problems = await llm.get_leetcode_problems(
-            stack=analysis.job_title, seniority="", gaps=gaps_str
+            stack=analysis.job_title,
+            seniority="",
+            gaps=gaps_str,
         )
         return [p.model_dump() for p in problems]
 
@@ -188,14 +201,13 @@ async def get_interview_questions(
     async def generate(analysis: Analysis) -> dict:
         gaps = await _ensure_gaps(db, analysis, llm)
         result = await llm.generate_interview_questions(
-            [g.skill for g in gaps], analysis.id
+            [g.skill for g in gaps],
+            analysis.id,
         )
         return result.model_dump()
 
     return await get_or_generate(db, analysis_id, "interview_questions", generate)
 
-
-# ── Avaliações (stateless, sem cache) ─────────────────────────────────────────
 
 @router.post("/evaluate-solution", response_model=LeetCodeEvaluateResponse)
 async def evaluate_solution(
@@ -203,7 +215,11 @@ async def evaluate_solution(
     llm: LLMService = Depends(),
 ) -> LeetCodeEvaluateResponse:
     return await llm.evaluate_leetcode(
-        req.slug, req.title, req.description, req.solution, req.language
+        req.slug,
+        req.title,
+        req.description,
+        req.solution,
+        req.language,
     )
 
 
@@ -217,7 +233,5 @@ async def evaluate_interview_answer(
     llm: LLMService = Depends(),
     db: Session = Depends(get_session),
 ) -> InterviewEvaluateResponse:
-    if db.get(Analysis, analysis_id) is None:
-        raise HTTPException(status_code=404, detail="Análise não encontrada.")
-
+    _get_analysis_or_404(db, analysis_id)
     return await llm.evaluate_interview(req.question, req.transcript, req.gaps, round=1)

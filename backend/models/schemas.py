@@ -4,8 +4,6 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
-# ── Analyze ──────────────────────────────────────────────────────────────────
-
 class Gap(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     skill: str
@@ -19,16 +17,20 @@ class AnalyzeResponse(BaseModel):
     summary: str
 
 
-# ── Analysis (novo contrato) ──────────────────────────────────────────────────
-
 class AnalysisCreateResponse(BaseModel):
     analysis_id: str
+
+
+class ResumeMeta(BaseModel):
+    filename: str
+    content_type: str
+    url: str
 
 
 class AnalysisDetailResponse(BaseModel):
     job_title: str
     job_description: str
-    resume: str  # PDF original codificado em base64
+    resume: ResumeMeta
 
 
 class EvaluateSolutionRequest(BaseModel):
@@ -46,8 +48,6 @@ class EvaluateInterviewAnswerRequest(BaseModel):
     gaps: list[str]
 
 
-# ── Roadmap ───────────────────────────────────────────────────────────────────
-
 class RoadmapRequest(BaseModel):
     session_id: str
     gaps: list[Gap]
@@ -62,16 +62,12 @@ class RoadmapTask(BaseModel):
     category: Literal["conceito", "pratica", "revisao"]
 
 
-# ── Context ───────────────────────────────────────────────────────────────────
-
 class ContextResponse(BaseModel):
     title: str
     definition: str
     relevance: str
     how_to_show: str
 
-
-# ── LeetCode ──────────────────────────────────────────────────────────────────
 
 class LeetCodeProblem(BaseModel):
     slug: str
@@ -98,8 +94,6 @@ class LeetCodeEvaluateResponse(BaseModel):
     optimal_hint: str
 
 
-# ── Pitch ─────────────────────────────────────────────────────────────────────
-
 class PitchRequest(BaseModel):
     candidate_json: dict
     job_json: dict
@@ -114,8 +108,6 @@ class PitchCard(BaseModel):
     vaga_connection: str
     relevance: str
 
-
-# ── Interview ─────────────────────────────────────────────────────────────────
 
 class InterviewStartRequest(BaseModel):
     gaps: list[str]

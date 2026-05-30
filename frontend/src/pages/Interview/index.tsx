@@ -5,6 +5,7 @@ import {
   useEvaluateInterviewAnswer,
   type InterviewEvaluateResponse,
 } from '../../lib/api';
+import { RecruiterQuestions } from '../../components/RecruiterQuestions';
 
 declare global {
   interface Window {
@@ -243,6 +244,8 @@ export function InterviewPage() {
           </div>
         </div>
       )}
+
+      {analysisId && <RecruiterQuestions analysisId={analysisId} />}
     </div>
   );
 }

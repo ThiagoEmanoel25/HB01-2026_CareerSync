@@ -18,7 +18,8 @@
       "PowerShell(git *)",
       "Bash(git rm *)",
       "Bash(py --version)",
-      "PowerShell(cd C:\\\\Users\\\\Thiago\\\\Desktop\\\\PrepOs\\\\backend; $env:PYTHONUNBUFFERED=1; Start-Process -FilePath \".\\\\.venv\\\\Scripts\\\\python.exe\" -ArgumentList \"-m\",\"uvicorn\",\"main:app\",\"--port\",\"8000\" -RedirectStandardOutput \"uvicorn.out.log\" -RedirectStandardError \"uvicorn.err.log\" -NoNewWindow; Start-Sleep -Seconds 6; Write-Output \"=== OUT ===\"; Get-Content uvicorn.out.log -ErrorAction SilentlyContinue; Write-Output \"=== ERR ===\"; Get-Content uvicorn.err.log -ErrorAction SilentlyContinue)"
+      "PowerShell(cd C:\\\\Users\\\\Thiago\\\\Desktop\\\\PrepOs\\\\backend; $env:PYTHONUNBUFFERED=1; Start-Process -FilePath \".\\\\.venv\\\\Scripts\\\\python.exe\" -ArgumentList \"-m\",\"uvicorn\",\"main:app\",\"--port\",\"8000\" -RedirectStandardOutput \"uvicorn.out.log\" -RedirectStandardError \"uvicorn.err.log\" -NoNewWindow; Start-Sleep -Seconds 6; Write-Output \"=== OUT ===\"; Get-Content uvicorn.out.log -ErrorAction SilentlyContinue; Write-Output \"=== ERR ===\"; Get-Content uvicorn.err.log -ErrorAction SilentlyContinue)",
+      "Bash(./.venv/Scripts/python.exe *)"
     ]
   }
 }

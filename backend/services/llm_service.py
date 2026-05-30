@@ -16,6 +16,7 @@ from models.schemas import (
     LeetCodeProblem,
     PitchCard,
     RoadmapTask,
+    StrategicQuestion,
 )
 from services.prompts import (
     ANALYZE_SYSTEM_PROMPT,
@@ -26,6 +27,7 @@ from services.prompts import (
     LEETCODE_SYSTEM_PROMPT,
     PITCH_SYSTEM_PROMPT,
     ROADMAP_SYSTEM_PROMPT,
+    STRATEGIC_QUESTIONS_SYSTEM_PROMPT,
 )
 
 logger = logging.getLogger(__name__)
@@ -166,6 +168,24 @@ class LLMService:
         # Chave "cards" agora é explícita no prompt — contrato determinista.
         cards = data.get("cards", [])
         return [PitchCard(**c) for c in cards]
+
+    async def generate_strategic_questions(
+        self,
+        job_title: str,
+        job_description: str,
+        company_name: str,
+    ) -> list[StrategicQuestion]:
+        data = await self._chat_json(
+            STRATEGIC_QUESTIONS_SYSTEM_PROMPT,
+            "\n\n".join([
+                f"<company_name>\n{company_name}\n</company_name>",
+                f"<job_title>\n{job_title}\n</job_title>",
+                f"<job_description>\n{job_description}\n</job_description>",
+            ]),
+        )
+        # Chave "questions" é explícita no prompt — contrato determinista.
+        questions = data.get("questions", [])
+        return [StrategicQuestion(**q) for q in questions]
 
     async def generate_interview_questions(self, gaps: list[str], session_id: str) -> InterviewStartResponse:
         data = await self._chat_json(

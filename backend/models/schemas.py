@@ -109,6 +109,12 @@ class PitchCard(BaseModel):
     relevance: str
 
 
+class StrategicQuestion(BaseModel):
+    question: str
+    type: Literal["cultura", "tecnico", "desafios"]
+    why_strategic: str
+
+
 class InterviewStartRequest(BaseModel):
     gaps: list[str]
     session_id: str

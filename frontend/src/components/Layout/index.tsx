@@ -3,6 +3,7 @@ import {
   Lightbulb,
   Map,
   Mic,
+  MessageCircleQuestion,
   SquarePen,
   MoreVertical,
   ScrollText,
@@ -52,6 +53,11 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     label: "Simular Entrevista",
     to: "/interview",
     icon: <Mic {...NAVIGATION_ICONS_SIZE} />,
+  },
+  {
+    label: "Perguntas p/ Empresa",
+    to: "/strategic-questions",
+    icon: <MessageCircleQuestion {...NAVIGATION_ICONS_SIZE} />,
   },
 ];
 

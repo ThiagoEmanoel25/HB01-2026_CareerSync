@@ -8,6 +8,7 @@ export function NewAnalysisPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [jobText, setJobText] = useState("");
   const [jobTitle, setJobTitle] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [fileName, setFileName] = useState("");
 
   const resetSession = useSession((s) => s.reset);
@@ -24,13 +25,15 @@ export function NewAnalysisPage() {
     }
 
     const file = fileRef.current?.files?.[0];
-    if (!file || !jobText.trim()) return;
+    if (!file || !jobText.trim() || !companyName.trim()) return;
 
     const normalizedJobTitle = jobTitle.trim() || "Vaga não especificada";
+    const normalizedCompanyName = companyName.trim();
     const form = new FormData();
     form.append("resume", file);
     form.append("job_title", normalizedJobTitle);
     form.append("job_description", jobText);
+    form.append("company_name", normalizedCompanyName);
 
     analyze(form, {
       onSuccess: (res) => {
@@ -41,6 +44,7 @@ export function NewAnalysisPage() {
           summary: res.summary,
           jobTitle: normalizedJobTitle,
           jobDescription: jobText,
+          companyName: normalizedCompanyName,
           fileName,
         });
 
@@ -84,6 +88,19 @@ export function NewAnalysisPage() {
 
           <div>
             <label className="block text-sm font-medium text-white mb-2">
+              Nome da empresa
+            </label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Ex: Supabase"
+              className="w-full bg-[#202020] border border-gray-700 text-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:border-[#3ecf8e] focus:ring-1 focus:ring-[#3ecf8e] transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-white mb-2">
               Cargo alvo
             </label>
             <input
@@ -116,7 +133,7 @@ export function NewAnalysisPage() {
 
           <button
             type="submit"
-            disabled={isPending || !fileName || !jobText.trim()}
+            disabled={isPending || !fileName || !jobText.trim() || !companyName.trim()}
             className="bg-[#3ecf8e] text-black font-bold py-3 mt-2 rounded-xl hover:bg-[#36b37e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {isPending ? "Analisando perfil..." : "Analisar Match"}

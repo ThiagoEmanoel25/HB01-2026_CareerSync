@@ -26,6 +26,7 @@ export interface HistoryItem {
   gaps: Gap[];
   jobTitle: string;
   jobDescription: string;
+  companyName: string;
   fileName: string;
   roadmap: RoadmapTask[];
 }
@@ -38,6 +39,7 @@ interface SessionState {
   gaps: Gap[];
   jobTitle: string;
   jobDescription: string;
+  companyName: string;
   fileName: string;
   roadmap: RoadmapTask[];
 
@@ -56,6 +58,7 @@ interface SessionState {
     summary: string;
     jobTitle: string;
     jobDescription: string;
+    companyName: string;
     fileName: string;
   }) => void;
   loadSession: (sessionId: string) => void;
@@ -72,6 +75,7 @@ export const useSession = create<SessionState>()(
       gaps: [],
       jobTitle: "",
       jobDescription: "",
+      companyName: "",
       fileName: "",
       roadmap: [],
       history: [],
@@ -104,6 +108,7 @@ export const useSession = create<SessionState>()(
             summary: data.summary,
             jobTitle: data.jobTitle,
             jobDescription: data.jobDescription,
+            companyName: data.companyName,
             fileName: data.fileName,
             roadmap: state.roadmap,
           };
@@ -126,6 +131,7 @@ export const useSession = create<SessionState>()(
             summary: data.summary,
             jobTitle: data.jobTitle,
             jobDescription: data.jobDescription,
+            companyName: data.companyName,
             fileName: data.fileName,
             history: updatedHistory,
           };
@@ -144,6 +150,7 @@ export const useSession = create<SessionState>()(
             gaps: target.gaps,
             jobTitle: target.jobTitle,
             jobDescription: target.jobDescription,
+            companyName: target.companyName,
             fileName: target.fileName,
             roadmap: target.roadmap,
           };
@@ -161,6 +168,7 @@ export const useSession = create<SessionState>()(
             gaps: [],
             jobTitle: "",
             jobDescription: "",
+            companyName: "",
             fileName: "",
             roadmap: [],
             history: state.history || [],

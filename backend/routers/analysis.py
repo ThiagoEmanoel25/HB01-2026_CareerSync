@@ -20,6 +20,7 @@ from models.schemas import (
     PitchCard,
     ResumeMeta,
     RoadmapTask,
+    StrategicQuestion,
 )
 from services.llm_service import LLMService
 from services.pdf_service import PDFService
@@ -78,6 +79,7 @@ async def create_analysis(
     resume: UploadFile,
     job_title: str = Form(...),
     job_description: str = Form(...),
+    company_name: str = Form(...),
     pdf_svc: PDFService = Depends(),
     db: Session = Depends(get_session),
 ) -> AnalysisCreateResponse:
@@ -86,6 +88,7 @@ async def create_analysis(
     analysis = Analysis(
         job_title=job_title,
         job_description=job_description,
+        company_name=company_name,
         resume=contents,
         resume_text=resume_text,
     )
@@ -207,6 +210,33 @@ async def get_interview_questions(
         return result.model_dump()
 
     return await get_or_generate(db, analysis_id, "interview_questions", generate)
+
+
+@router.get("/analysis/{analysis_id}/strategic-questions", response_model=list[StrategicQuestion])
+async def get_strategic_questions(
+    analysis_id: str,
+    refresh: bool = False,
+    llm: LLMService = Depends(),
+    db: Session = Depends(get_session),
+) -> Any:
+    async def generate(analysis: Analysis) -> list[dict]:
+        questions = await llm.generate_strategic_questions(
+            job_title=analysis.job_title,
+            job_description=analysis.job_description,
+            company_name=analysis.company_name or "",
+        )
+        return [q.model_dump() for q in questions]
+
+    # refresh=true ignora o cache e regenera (usado pelo botão "Regenerar").
+    if refresh:
+        analysis = _get_analysis_or_404(db, analysis_id)
+        analysis.strategic_questions = await generate(analysis)
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+        return analysis.strategic_questions
+
+    return await get_or_generate(db, analysis_id, "strategic_questions", generate)
 
 
 @router.post("/evaluate-solution", response_model=LeetCodeEvaluateResponse)

@@ -1,3 +1,4 @@
+import { Lightbulb } from 'lucide-react';
 import { useAnalysisPitch, type PitchCard } from '../../lib/api';
 import { useSession } from '../../store/session';
 
@@ -54,7 +55,7 @@ const StarCard = ({ pitch }: { pitch: PitchCard }) => (
     <div className="bg-[#171717] p-6 border-t border-gray-800 mt-auto">
       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Conexão Estratégica</h4>
       <div className="flex gap-3">
-        <span className="text-[#3ecf8e] text-lg">💡</span>
+        <Lightbulb size={18} className="text-[#3ecf8e] shrink-0 mt-0.5" />
         <p className="text-gray-300 text-sm italic leading-relaxed">
           "{pitch.vaga_connection}"
         </p>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
 
 import type { RoadmapTask } from "../../store/session";
 import { isDayComplete, makeTaskKey } from "../../lib/roadmap";
@@ -65,17 +66,16 @@ export function RoadmapDaysView({
                   </span>
                 )}
                 {dayDone && (
-                  <span className="text-xs font-medium text-[#3ecf8e]">✓</span>
+                  <Check size={15} strokeWidth={3} className="text-[#3ecf8e]" />
                 )}
               </div>
-              <span
+              <ChevronDown
+                size={18}
                 className={`text-gray-500 transition-transform ${
                   isOpen ? "rotate-180" : ""
                 }`}
                 aria-hidden
-              >
-                ▾
-              </span>
+              />
             </button>
             {isOpen && (
               <div

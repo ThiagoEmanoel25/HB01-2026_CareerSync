@@ -252,29 +252,42 @@ export function useGeneratePitch() {
   });
 }
 
-export function useStartInterview() {
+export function useInterviewTTS() {
   return useMutation({
-    mutationFn: (body: { gaps: string[]; session_id: string }) =>
-      apiRequest<{ questions: string[] }>(`${API}/interview/start`, {
+    mutationFn: async (body: {
+      question_text: string;
+      voice?: "alloy" | "nova";
+    }): Promise<ArrayBuffer> => {
+      const res = await fetch(`${API}/interview/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }),
-  });
-}
+        body: JSON.stringify({ voice: "alloy", ...body }),
+      });
+      if (!res.ok || !res.body) {
+        const err = await res
+          .json()
+          .catch(() => ({ detail: "Falha ao gerar o áudio." }));
+        throw new Error((err as { detail: string }).detail ?? "Falha no TTS.");
+      }
 
-export function useEvaluateAnswer() {
-  return useMutation({
-    mutationFn: (body: {
-      question: string;
-      transcript: string;
-      gaps: string[];
-      round: number;
-    }) =>
-      apiRequest<InterviewEvaluateResponse>(`${API}/interview/evaluate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }),
+      // Consome o ReadableStream chunk a chunk e remonta num único ArrayBuffer,
+      // pronto para AudioContext.decodeAudioData().
+      const reader = res.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        total += value.length;
+      }
+      const merged = new Uint8Array(total);
+      let offset = 0;
+      for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return merged.buffer;
+    },
   });
 }

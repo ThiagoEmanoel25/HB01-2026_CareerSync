@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import type { RoadmapTask } from "../../store/session";
 import { CATEGORY_LABELS, CATEGORY_STYLES } from "../../lib/roadmap";
 
@@ -45,9 +46,10 @@ export function TaskItem({ task, done, onToggle, onViewContext }: TaskItemProps)
       <button
         type="button"
         onClick={() => onViewContext(task.gap_id)}
-        className="text-xs font-medium text-[#3ecf8e] hover:text-[#3ecf8e]/80 hover:underline whitespace-nowrap mt-1 shrink-0"
+        className="inline-flex items-center gap-1 text-xs font-medium text-[#3ecf8e] hover:text-[#3ecf8e]/80 whitespace-nowrap mt-1 shrink-0 group"
       >
-        Ver contexto →
+        Ver contexto
+        <ArrowRight size={13} strokeWidth={2.5} className="group-hover:translate-x-0.5 transition-transform" />
       </button>
     </div>
   );

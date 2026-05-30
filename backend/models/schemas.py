@@ -127,7 +127,7 @@ class InterviewStartResponse(BaseModel):
 
 
 class TTSRequest(BaseModel):
-    question_text: str
+    question_text: str = Field(..., min_length=1, max_length=4096)
     voice: Literal["alloy", "nova"] = "alloy"
 
 

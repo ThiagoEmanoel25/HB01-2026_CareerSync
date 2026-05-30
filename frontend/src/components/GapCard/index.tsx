@@ -1,3 +1,5 @@
+import { ArrowRight } from "lucide-react";
+
 interface GapCardProps {
   skill: string;
   level: "critical" | "moderate";
@@ -29,8 +31,12 @@ export function GapCard({ skill, level, reason, onViewContext }: GapCardProps) {
         onClick={() => onViewContext(skill)}
         className="self-start mt-2 text-sm font-bold text-[#3ecf8e] hover:text-[#36b37e] flex items-center gap-1.5 transition-colors group"
       >
-        Ver contexto 
-        <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+        Ver contexto
+        <ArrowRight
+          size={16}
+          strokeWidth={2.5}
+          className="group-hover:translate-x-1 transition-transform duration-200"
+        />
       </button>
     </div>
   );

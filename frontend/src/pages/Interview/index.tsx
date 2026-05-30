@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
+import { Bot, Mic, VolumeX, RotateCcw, ThumbsUp, Target, ArrowRight } from 'lucide-react';
 import { useSession } from '../../store/session';
 import {
   useAnalysisInterviewQuestions,
   useEvaluateInterviewAnswer,
+  useInterviewTTS,
   type InterviewEvaluateResponse,
 } from '../../lib/api';
 
@@ -18,6 +20,45 @@ const MOCK_QUESTIONS = [
   "Descreva uma situação onde você discordou de um colega sobre uma decisão técnica. Como vocês resolveram isso?",
   "Fale sobre um projeto complexo em que você trabalhou. Qual foi o seu papel e o maior desafio que você superou?"
 ];
+
+// Waveform SVG animada (SMIL, sem CSS extra) para o estado "Recrutador falando…".
+const SpeakingWaveform = () => {
+  const bars = [
+    { x: 0, begin: '0s' },
+    { x: 7, begin: '0.25s' },
+    { x: 14, begin: '0.5s' },
+    { x: 21, begin: '0.15s' },
+    { x: 28, begin: '0.35s' },
+  ];
+  return (
+    <svg
+      width="44"
+      height="36"
+      viewBox="0 0 32 36"
+      className="text-[#3ecf8e]"
+      aria-hidden="true"
+    >
+      {bars.map((b, i) => (
+        <rect key={i} x={b.x} y={14} width="4" height="8" rx="2" fill="currentColor">
+          <animate
+            attributeName="height"
+            values="8;26;8"
+            dur="0.9s"
+            begin={b.begin}
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="y"
+            values="14;5;14"
+            dur="0.9s"
+            begin={b.begin}
+            repeatCount="indefinite"
+          />
+        </rect>
+      ))}
+    </svg>
+  );
+};
 
 export function InterviewPage() {
   const jobTitle = useSession((s) => s.jobTitle);
@@ -40,6 +81,87 @@ export function InterviewPage() {
   const question = questions[currentQuestionIndex % questions.length];
   const [evaluation, setEvaluation] = useState<InterviewEvaluateResponse | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  // ── TTS via Web Audio API: o "recrutador" fala a pergunta (voz "alloy") ─────
+  // Fluxo: fetch (ReadableStream → ArrayBuffer) → decodeAudioData → playback.
+  // Estados: idle → loading → speaking → done | error.
+  const { mutateAsync: synthesize } = useInterviewTTS();
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const bufferCacheRef = useRef<Map<string, AudioBuffer>>(new Map());
+  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const [audioState, setAudioState] =
+    useState<'idle' | 'loading' | 'speaking' | 'done' | 'error'>('idle');
+
+  const getAudioContext = () => {
+    if (!audioCtxRef.current) {
+      const Ctx =
+        window.AudioContext || (window as any).webkitAudioContext;
+      audioCtxRef.current = new Ctx();
+    }
+    return audioCtxRef.current;
+  };
+
+  const stopCurrentSource = () => {
+    const src = sourceRef.current;
+    if (src) {
+      src.onended = null; // evita disparar a transição ao parar manualmente
+      try {
+        src.stop();
+      } catch {
+        /* já parado */
+      }
+      sourceRef.current = null;
+    }
+  };
+
+  const playQuestionAudio = async (text: string) => {
+    stopCurrentSource();
+    setAudioState('loading');
+    try {
+      const ctx = getAudioContext();
+
+      let buffer = bufferCacheRef.current.get(text);
+      if (!buffer) {
+        const arrayBuffer = await synthesize({ question_text: text });
+        buffer = await ctx.decodeAudioData(arrayBuffer);
+        bufferCacheRef.current.set(text, buffer);
+      }
+
+      if (ctx.state === 'suspended') await ctx.resume();
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.onended = () => {
+        // Término natural do áudio → passa a vez para o candidato.
+        sourceRef.current = null;
+        setAudioState('done');
+      };
+      sourceRef.current = source;
+      source.start(0);
+      setAudioState('speaking');
+    } catch {
+      setAudioState('error');
+    }
+  };
+
+  // Autoplay: o recrutador fala sempre que a pergunta muda (o gesto "Iniciar
+  // Sessão" já liberou o áudio no browser). Em erro, degrada para texto.
+  useEffect(() => {
+    if (!isStarted || !question) return;
+    playQuestionAudio(question);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStarted, question]);
+
+  // Cleanup: para o playback e fecha o AudioContext ao desmontar.
+  useEffect(() => {
+    return () => {
+      stopCurrentSource();
+      audioCtxRef.current?.close().catch(() => {});
+    };
+  }, []);
+
+  const isRecruiterSpeaking = audioState === 'loading' || audioState === 'speaking';
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -135,22 +257,72 @@ export function InterviewPage() {
         <main className="flex-1 flex flex-col items-center p-4">
           
           <div className="text-center mb-12 max-w-3xl">
-            <div className="w-24 h-24 bg-[#202020] border-2 border-[#3ecf8e]/30 rounded-full mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(62,207,142,0.15)] transition-all">
-              <span className={`text-4xl transition-transform ${isRecording ? 'animate-pulse scale-110' : ''}`}>🤖</span>
+            <div
+              className={`w-24 h-24 bg-[#202020] border-2 rounded-full mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(62,207,142,0.15)] transition-all ${
+                isRecruiterSpeaking ? 'border-[#3ecf8e] scale-105' : 'border-[#3ecf8e]/30'
+              }`}
+            >
+              {audioState === 'speaking' ? (
+                <SpeakingWaveform />
+              ) : (
+                <Bot
+                  size={40}
+                  className={`text-[#3ecf8e] transition-transform ${isRecording ? 'animate-pulse scale-110' : ''}`}
+                />
+              )}
             </div>
             <h2 className="text-xl md:text-2xl font-medium text-white leading-relaxed">
               "{question}"
             </h2>
+
+            <div className="mt-5 flex justify-center min-h-[28px]">
+              {audioState === 'loading' && (
+                <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-400">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#3ecf8e]"></div>
+                  Preparando a voz do recrutador...
+                </span>
+              )}
+
+              {audioState === 'speaking' && (
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#3ecf8e] animate-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3ecf8e] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3ecf8e]"></span>
+                  </span>
+                  Recrutador falando…
+                </span>
+              )}
+
+              {(audioState === 'done' || audioState === 'error') && (
+                <button
+                  onClick={() => playQuestionAudio(question)}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-[#3ecf8e] transition-colors"
+                >
+                  {audioState === 'error' ? (
+                    <>
+                      <VolumeX size={16} /> Áudio indisponível — Ouvir novamente
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw size={16} /> Ouvir a pergunta novamente
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
-          {!evaluation && (
-            <div className="w-full flex flex-col items-center mb-10">
-              <button 
+          {!evaluation && (audioState === 'done' || audioState === 'error') && (
+            <div className="w-full flex flex-col items-center mb-10 animate-fade-in-up">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#3ecf8e]">
+                Sua vez de responder
+              </p>
+              <button
                 onClick={toggleRecording}
                 disabled={isEvaluating}
-                className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${
-                  isRecording 
-                    ? 'bg-red-500/20 text-red-500 border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)] scale-110' 
+                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isRecording
+                    ? 'bg-red-500/20 text-red-500 border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)] scale-110'
                     : isEvaluating
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                     : 'bg-[#202020] hover:bg-[#2a2a2a] text-[#3ecf8e] border border-gray-700'
@@ -159,7 +331,7 @@ export function InterviewPage() {
                 {isEvaluating ? (
                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500"></div>
                 ) : (
-                  "🎤"
+                  <Mic size={30} />
                 )}
               </button>
               
@@ -196,7 +368,7 @@ export function InterviewPage() {
               <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-[#171717] p-5 rounded-xl border border-gray-800">
                   <h4 className="text-emerald-400 font-bold mb-4 flex items-center gap-2">
-                    <span className="bg-emerald-500/20 p-1 rounded">👍</span> Pontos Fortes
+                    <span className="bg-emerald-500/20 p-1.5 rounded text-emerald-400"><ThumbsUp size={15} /></span> Pontos Fortes
                   </h4>
                   <ul className="list-disc pl-4 text-sm text-gray-300 space-y-2">
                     {evaluation.strengths.map((str, i) => <li key={i}>{str}</li>)}
@@ -205,7 +377,7 @@ export function InterviewPage() {
                 
                 <div className="bg-[#171717] p-5 rounded-xl border border-gray-800">
                   <h4 className="text-amber-400 font-bold mb-4 flex items-center gap-2">
-                    <span className="bg-amber-500/20 p-1 rounded">🎯</span> A Melhorar
+                    <span className="bg-amber-500/20 p-1.5 rounded text-amber-400"><Target size={15} /></span> A Melhorar
                   </h4>
                   <ul className="list-disc pl-4 text-sm text-gray-300 space-y-2">
                     {evaluation.improvements.map((imp, i) => <li key={i}>{imp}</li>)}
@@ -223,9 +395,10 @@ export function InterviewPage() {
               <div className="flex justify-center">
                 <button 
                   onClick={handleNextQuestion}
-                  className="bg-[#171717] hover:bg-[#2a2a2a] border border-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
+                  className="bg-[#171717] hover:bg-[#2a2a2a] border border-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 group"
                 >
-                  Próxima Pergunta <span>→</span>
+                  Próxima Pergunta
+                  <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
             </div>
@@ -235,7 +408,9 @@ export function InterviewPage() {
       ) : (
         <div className="flex-1 flex items-center justify-center">
           <div className="bg-[#202020] border border-gray-800 border-dashed rounded-2xl p-10 text-center max-w-xl">
-             <div className="text-4xl mb-4">🎙️</div>
+             <div className="w-16 h-16 mx-auto mb-4 bg-[#3ecf8e]/10 rounded-full flex items-center justify-center text-[#3ecf8e]">
+               <Mic size={28} />
+             </div>
             <h3 className="text-white font-bold text-lg mb-2">Simulador de Áudio Nativo</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               O PrepOS usará o microfone do seu navegador para transcrever sua fala em tempo real (Speech-to-Text). Clique em "Iniciar Sessão" no topo para permitir o acesso.

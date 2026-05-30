@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Lightbulb, Sparkles, AlertTriangle, Check, X } from "lucide-react";
 import {
   useAnalysisCodeChallenges,
   useEvaluateSolution,
@@ -44,8 +45,9 @@ const ProblemCard = ({
         {problem.category}
       </span>
     </div>
-    <p className="text-sm text-[#9a9a9a] line-clamp-2">
-      <span className="text-[#3ecf8e] mr-1">💡</span> {problem.reason}
+    <p className="flex items-start gap-1.5 text-sm text-[#9a9a9a] line-clamp-2">
+      <Lightbulb size={14} className="text-[#3ecf8e] shrink-0 mt-0.5" />
+      {problem.reason}
     </p>
   </div>
 );
@@ -180,13 +182,21 @@ export function CodeChallengePage() {
                       Resultado da Avaliação
                     </h3>
                     <span
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                      className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
                         evaluation.correct
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                           : "bg-red-500/10 text-red-400 border-red-500/20"
                       }`}
                     >
-                      {evaluation.correct ? "Aprovado ✓" : "Revisar ✕"}
+                      {evaluation.correct ? (
+                        <>
+                          <Check size={14} strokeWidth={3} /> Aprovado
+                        </>
+                      ) : (
+                        <>
+                          <X size={14} strokeWidth={3} /> Revisar
+                        </>
+                      )}
                     </span>
                   </div>
 
@@ -213,7 +223,7 @@ export function CodeChallengePage() {
                     {evaluation.improvements.length > 0 && (
                       <div>
                         <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
-                          <span>⚠</span> Pontos de Melhoria
+                          <AlertTriangle size={16} /> Pontos de Melhoria
                         </h4>
                         <ul className="list-disc pl-5 text-sm text-gray-300 space-y-2">
                           {evaluation.improvements.map((imp, idx) => (
@@ -225,7 +235,7 @@ export function CodeChallengePage() {
 
                     <div className="bg-[#3ecf8e]/5 border border-[#3ecf8e]/20 p-4 rounded-xl">
                       <h4 className="text-sm font-bold text-[#3ecf8e] mb-2 flex items-center gap-2">
-                        <span>💡</span> Dica de Otimização
+                        <Sparkles size={16} /> Dica de Otimização
                       </h4>
                       <p className="text-sm text-gray-300 leading-relaxed">
                         {evaluation.optimal_hint}

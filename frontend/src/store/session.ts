@@ -49,7 +49,6 @@ interface SessionState {
   setJobDescription: (desc: string) => void;
   setFileName: (name: string) => void;
   setRoadmap: (tasks: RoadmapTask[]) => void;
-
   saveFullSession: (data: {
     analysisId: string;
     score: number;
@@ -90,7 +89,7 @@ export const useSession = create<SessionState>()(
           const updatedHistory = historyList.map((item) =>
             item.sessionId === state.sessionId
               ? { ...item, roadmap: tasks }
-              : item
+              : item,
           );
           return { roadmap: tasks, history: updatedHistory };
         }),
@@ -111,12 +110,12 @@ export const useSession = create<SessionState>()(
 
           const historyList = state.history || [];
           const exists = historyList.some(
-            (item) => item.sessionId === state.sessionId
+            (item) => item.sessionId === state.sessionId,
           );
 
           const updatedHistory = exists
             ? historyList.map((item) =>
-                item.sessionId === state.sessionId ? newHistoryItem : item
+                item.sessionId === state.sessionId ? newHistoryItem : item,
               )
             : [newHistoryItem, ...historyList];
 
@@ -171,6 +170,6 @@ export const useSession = create<SessionState>()(
     {
       name: "prep-ai-session",
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );

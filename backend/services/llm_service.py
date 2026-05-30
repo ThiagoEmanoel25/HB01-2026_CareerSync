@@ -71,6 +71,22 @@ class LLMService:
         )
         return AnalyzeResponse(**data)
 
+    async def summarize_analysis(
+        self,
+        resume_text: str,
+        job_title: str,
+        job_description: str,
+    ) -> AnalyzeResponse:
+        data = await self._chat_json(
+            ANALYZE_SYSTEM_PROMPT,
+            "\n\n".join([
+                f"<job_title>\n{job_title}\n</job_title>",
+                f"<job_description>\n{job_description}\n</job_description>",
+                f"<user_resume>\n{resume_text}\n</user_resume>",
+            ]),
+        )
+        return AnalyzeResponse(**data)
+
     def _validate_roadmap(self, tasks: list[RoadmapTask], gaps: list[Gap]) -> None:
         valid_categories = {"conceito", "pratica", "revisao"}
         valid_gap_ids = {g.id for g in gaps}

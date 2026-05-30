@@ -36,8 +36,6 @@ export function RoadmapPage() {
     refetch,
   } = useAnalysisRoadmap(analysisId);
 
-  // O backend é a fonte de verdade: ao receber o roadmap, sincroniza no store
-  // (alimenta a barra de progresso e o histórico).
   useEffect(() => {
     if (fetchedRoadmap && fetchedRoadmap.length > 0) {
       setRoadmap(fetchedRoadmap);
@@ -47,7 +45,7 @@ export function RoadmapPage() {
   const tasksByDay = useMemo(() => groupByDay(roadmap), [roadmap]);
   const completedDays = useMemo(
     () => countCompletedDays(tasksByDay, isDone),
-    [tasksByDay, isDone]
+    [tasksByDay, isDone],
   );
 
   function handleToggle(taskKey: string) {

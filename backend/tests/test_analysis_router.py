@@ -90,7 +90,7 @@ class AnalysisRouterTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         body = response.json()
         self.assertRegex(
             body["analysis_id"],

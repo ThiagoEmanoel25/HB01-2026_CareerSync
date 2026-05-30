@@ -12,7 +12,9 @@ Add a fixed Python code challenge practice flow to `/code-challenge` while prese
 - Add a new fixed catalog of 8 Python challenges.
 - Require users to implement a named Python function for each challenge.
 - Grade submissions with backend tests, not with an LLM.
-- Run submitted code in a subprocess with a short timeout and lightweight AST validation.
+- Run submitted code in a local subprocess only for development and MVP demos.
+- Treat AST validation as a preflight guard only, not as a sandbox.
+- Forbid the local subprocess runner in production.
 - Use the LLM only for hints based on the problem and the user's current code.
 - Do not persist submissions in the MVP.
 
@@ -44,6 +46,8 @@ The 8 MVP challenges are:
 
 Linked list challenges will use a backend-provided `ListNode` helper. Test inputs use arrays, the harness converts arrays into linked lists before calling the user's function, and return values are serialized back to arrays for comparison.
 
+Each challenge must also define comparison semantics explicitly. Most challenges use exact equality, but challenges that can return multiple valid answers must normalize or validate the result by challenge-specific logic. For example, `Two Sum` may accept either index order if the returned indexes are valid and point to values that sum to the target; `Two Sum II` must return 1-indexed positions.
+
 ## API
 
 Add new routes independent of `analysisId`:
@@ -67,6 +71,13 @@ It returns whether the solution passed, how many tests passed, the total number 
 
 `POST /challenges/{slug}/hint` accepts the same code payload and returns prose feedback. It must not include a complete solution or code snippets.
 
+Request limits:
+
+- Reject `code` larger than 10 KB.
+- Add rate limiting by IP before public exposure.
+- Add a maximum concurrent execution limit for the submit endpoint.
+- Add a maximum concurrent hint limit or shared rate limit to control LLM cost.
+
 ## Runner
 
 Define a runner interface so the execution backend can be replaced later:
@@ -79,21 +90,43 @@ class CodeRunner(Protocol):
 
 The MVP implementation is `LocalPythonSubprocessRunner`.
 
+Runner selection must be controlled by configuration, for example `CODE_RUNNER=local|external`. The application must refuse to start, or the submit endpoint must return a configuration error, when `environment=production` and `CODE_RUNNER=local`. Public production deployments must use an isolated execution backend such as Judge0, Docker-based isolation with strict resource controls, or a dedicated execution service.
+
 Execution flow:
 
 1. Parse the submitted code with `ast.parse`.
-2. Reject obvious unsafe operations and imports before execution.
+2. Reject obvious unsafe operations and imports before execution as defense-in-depth only.
 3. Write a temporary Python file containing helpers, user code, and the test harness.
-4. Run the file in a Python subprocess with a short timeout.
-5. Capture stdout as JSON.
+4. Run the file in a Python subprocess with a short timeout from outside the FastAPI event loop.
+5. Capture the harness result from a dedicated result file or file descriptor, not from stdout.
 6. Return a normalized result to the API.
+
+FastAPI integration:
+
+- Do not call `subprocess.run` directly inside an `async def` route.
+- Either make the submit route synchronous (`def`) so FastAPI runs it in the threadpool, or call the runner through `anyio.to_thread.run_sync` / `run_in_executor`.
+- The hint route can remain async because it calls the existing async LLM service.
 
 The AST validation should reject at least:
 
 - imports of `os`, `sys`, `subprocess`, `socket`, and similar system modules
 - calls to `open`, `eval`, `exec`, `__import__`, `compile`, `input`, `globals`, `locals`, and `vars`
 
-The MVP security model is intentionally limited. It is acceptable for local development and early demos, but public deployment should move to a stronger isolated runner such as Judge0, Docker-based isolation, or a dedicated execution service.
+The AST validation is not a security boundary. Python object introspection and builtins can bypass name-based deny lists. The local runner must never be considered safe for untrusted public traffic.
+
+Output and result-channel handling:
+
+- Redirect or capture user stdout and stderr separately so `print(...)` does not corrupt the harness result.
+- Cap captured stdout/stderr size and truncate it in responses.
+- Prefer writing the harness JSON result to a temp file created by the parent process and passed to the child as an argument or environment value.
+- If the result file is missing or invalid, return a controlled runner error instead of treating stdout parse failure as a user-code failure.
+
+Resource limits:
+
+- Always enforce a short wall-clock timeout.
+- On Windows, do not claim memory isolation because POSIX `resource` limits are unavailable.
+- Document local memory exhaustion as an accepted MVP risk.
+- For public deployment, require an isolated runner that can enforce memory, CPU, process, filesystem, and network limits.
 
 ## Result Policy
 
@@ -113,6 +146,11 @@ When execution fails:
 When execution times out:
 
 - Return a timeout status and indicate that the solution may contain an infinite loop or inefficient logic.
+
+When user output is too large:
+
+- Stop the execution or truncate captured output.
+- Return a controlled output-limit error if the runner cannot safely continue.
 
 ## AI Hints
 
@@ -155,9 +193,14 @@ Backend tests should cover:
 - catalog returns exactly 8 challenges
 - catalog category distribution matches the requirement
 - challenge detail does not expose hidden tests
+- challenge-specific comparison semantics, including unordered `Two Sum` indexes and 1-indexed `Two Sum II` indexes
 - a correct solution passes
 - an incorrect solution fails with first failed case details only
 - timeout is handled
+- user `print(...)` does not corrupt the harness result
+- oversized code is rejected
+- oversized output is controlled or truncated
+- the local runner is rejected when production environment is configured
 - forbidden import or call is rejected
 - hint endpoint calls the LLM service with problem and code context
 
@@ -175,3 +218,9 @@ Frontend verification should cover:
 - No rankings or scoring system.
 - No public-grade sandbox in this implementation.
 - No removal of existing analysis-based code challenge behavior.
+
+## Deployment Notes
+
+Vercel is a poor fit for the local subprocess runner because serverless functions have short execution windows, constrained subprocess behavior, cold starts, and limited writable filesystem access outside `/tmp`. Render, Railway, Fly, or another container-oriented host is a better fit for the backend, especially once a dedicated isolated runner is introduced.
+
+Production exposure of code execution requires the local runner to be replaced before launch. This is a release gate, not a later hardening task.

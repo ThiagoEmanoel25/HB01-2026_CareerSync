@@ -78,12 +78,12 @@ export default function HeroSection() {
           </AnimatedSection>
         </div>
 
-        <div className="flex justify-center lg:justify-end">
+        <div className="justify-center lg:justify-end hidden md:flex">
           <AnimatedSection
             animation="fade-left"
             delay={200}
             duration={800}
-            className="w-full lg:max-w-sm"
+            className="max-w-sm min-w-0"
           >
             <HeroMockup />
           </AnimatedSection>

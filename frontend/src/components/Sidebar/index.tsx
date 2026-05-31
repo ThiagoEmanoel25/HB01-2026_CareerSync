@@ -23,7 +23,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
       `}
     >
       <div
-        className={`flex items-start pt-4 h-16 px-5 ${isCollapsed ? "justify-center" : "justify-between"}`}
+        className={`flex items-start pt-4 h-16 px-5 shrink-0 ${isCollapsed ? "justify-center" : "justify-between"}`}
       >
         <div
           className={`transition-all duration-300 ${isCollapsed ? "hidden" : "w-auto opacity-100"}`}
@@ -38,7 +38,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
 
         <button
           onClick={onToggleCollapse}
-          className="hidden md:flex text-gray-400 hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/10"
+          className="hidden md:flex text-gray-400 hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/10 shrink-0"
           title={isCollapsed ? "Expandir menu" : "Recolher menu"}
         >
           {isCollapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
@@ -46,31 +46,33 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
 
         <button
           onClick={onClose}
-          className="md:hidden text-gray-400 hover:text-white transition-colors p-1"
+          className="md:hidden text-gray-400 hover:text-white transition-colors p-1 shrink-0"
         >
           <X />
         </button>
       </div>
 
-      <NavigationMenu isCollapsed={isCollapsed} onClose={onClose} />
+      <div className="shrink-0">
+        <NavigationMenu isCollapsed={isCollapsed} onClose={onClose} />
+      </div>
 
       <div
-        className={`px-2 transition-opacity duration-300 ${
+        className={`px-2 transition-opacity duration-300 flex-1 flex flex-col min-h-0 ${
           isCollapsed
             ? "opacity-0 pointer-events-none hidden"
-            : "opacity-100 block"
+            : "opacity-100 flex"
         }`}
       >
-        <h2 className="text-xs px-2 font-semibold text-[#9a9a9a] uppercase tracking-wider">
+        <h2 className="text-xs px-2 font-semibold text-[#9a9a9a] uppercase tracking-wider shrink-0">
           Histórico
         </h2>
-        <div className="flex flex-col gap-2 mt-3 max-h-[250px] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-2 mt-3 overflow-y-auto pr-1 flex-1 pb-4 custom-scrollbar">
           <HistoryList onClose={onClose} />
         </div>
       </div>
 
       <div
-        className={`mt-auto text-xs text-[#9a9a9a] px-5 pb-6 transition-all duration-300 ${isCollapsed ? "text-center px-0" : ""}`}
+        className={`shrink-0 mt-auto text-xs text-[#9a9a9a] px-5 pb-6 transition-all duration-300 ${isCollapsed ? "text-center px-0" : ""}`}
       >
         {isCollapsed ? "©" : "© CareerSync"}
       </div>

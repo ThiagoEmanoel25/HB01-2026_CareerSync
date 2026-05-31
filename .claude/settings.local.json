@@ -42,7 +42,11 @@
       "Bash(git check-ignore *)",
       "Bash(OPENAI_API_KEY=dummy .venv/Scripts/python.exe -c ' *)",
       "Bash(echo \"MARKER_9X_rc=$?\")",
-      "PowerShell(Set-Location \"C:\\\\Users\\\\Thiago\\\\Desktop\\\\PrepOs\"; \"pytest_out: \" + \\(Test-Path backend\\\\pytest_out.txt\\); \"verify_out: \" + \\(Test-Path backend\\\\verify_out.txt\\); \"tsc-out: \" + \\(Test-Path frontend\\\\tsc-out.txt\\); \"stray app/: \" + \\(Test-Path backend\\\\app\\); \"--- git status ---\"; git status --short)"
+      "PowerShell(Set-Location \"C:\\\\Users\\\\Thiago\\\\Desktop\\\\PrepOs\"; \"pytest_out: \" + \\(Test-Path backend\\\\pytest_out.txt\\); \"verify_out: \" + \\(Test-Path backend\\\\verify_out.txt\\); \"tsc-out: \" + \\(Test-Path frontend\\\\tsc-out.txt\\); \"stray app/: \" + \\(Test-Path backend\\\\app\\); \"--- git status ---\"; git status --short)",
+      "PowerShell(foreach \\($c in 'railway','vercel','node','npm'\\) { $cmd = Get-Command $c -ErrorAction SilentlyContinue; if \\($cmd\\) { \"{0}: {1}\" -f $c, $cmd.Source } else { \"{0}: NAO instalado\" -f $c } })",
+      "PowerShell(npm install *)",
+      "PowerShell(\"railway: $\\(railway --version\\)\"; \"vercel: $\\(vercel --version\\)\")",
+      "PowerShell(railway whoami *)"
     ]
   }
 }

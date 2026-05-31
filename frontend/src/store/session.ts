@@ -65,6 +65,8 @@ interface SessionState {
   reset: () => void;
 }
 
+type PersistedSessionState = Omit<SessionState, "history">;
+
 export const useSession = create<SessionState>()(
   persist(
     (set) => ({
@@ -178,6 +180,21 @@ export const useSession = create<SessionState>()(
     {
       name: "prep-ai-session",
       storage: createJSONStorage(() => localStorage),
+      partialize: (state): PersistedSessionState => {
+        const { history, ...persistedState } = state;
+        void history;
+        return persistedState;
+      },
+      merge: (persistedState, currentState) => {
+        const { history, ...persistedSessionState } =
+          (persistedState as Partial<SessionState>) ?? {};
+        void history;
+        return {
+          ...currentState,
+          ...persistedSessionState,
+          history: [],
+        };
+      },
     },
   ),
 );

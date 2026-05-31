@@ -188,13 +188,13 @@ export function AnalysisSummaryPage() {
         {chatStep >= 8 && (
           <AiBubble>
             <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
-              Para alcançarmos os 100% (ou chegarmos muito perto disso na
-              entrevista), notei alguns pontos de atenção no seu currículo.
-              Estas são as{" "}
-              <span className="text-amber-400 font-bold">
-                principais falhas de conhecimento
+              Para alcançar os 100%, ou chegar muito perto disso na
+              entrevista, percebi alguns tópicos sensíveis entre o seu currículo e a vaga pretendida.
+              Estes são os{" "}
+              <span className="text-[#3ecf8e] font-bold">
+                principais pontos
               </span>{" "}
-              que precisamos de trabalhar:
+              em que você deve focar agora:
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               {gaps.map((gap) => (

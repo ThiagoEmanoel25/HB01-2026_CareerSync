@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import LandingHeader from "../components/landing/LandingHeader";
+import { ScrollProgressBar } from "../components/common/ScrollProgressBar";
 import HeroSection from "../components/landing/HeroSection";
 import StackSection from "../components/landing/StackSection";
 import FeaturesSection from "../components/landing/FeaturesSection";
@@ -30,6 +31,7 @@ export default function LandingPage() {
         <meta name="robots" content="index, follow" />
       </Helmet>
 
+      <ScrollProgressBar />
       <LandingHeader />
 
       <main className="mt-16">

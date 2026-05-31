@@ -56,7 +56,11 @@ export function AppRouter() {
 
           <Route
             path="/code-challenge"
-            element={<CodeChallengePage />}
+            element={
+              <RequireAnalysis>
+                <CodeChallengePage />
+              </RequireAnalysis>
+            }
           />
 
           <Route

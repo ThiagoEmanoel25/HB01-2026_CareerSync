@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -55,57 +55,9 @@ export interface LeetCodeProblem {
   title: string;
   difficulty: "Easy" | "Medium" | "Hard";
   category: string;
-  reason: string;
-}
-
-export interface LeetCodeEvaluateResponse {
-  correct: boolean;
-  time_complexity: string;
-  space_complexity: string;
-  strengths: string[];
-  improvements: string[];
-  optimal_hint: string;
-}
-
-export interface ChallengeExample {
-  input: Record<string, unknown>;
-  expected: unknown;
-  explanation?: string | null;
-}
-
-export interface ChallengeSummary {
-  slug: string;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  category: string;
-  reason: string;
-}
-
-export interface ChallengeDetail extends ChallengeSummary {
+  url: string;
   description: string;
-  function_name: string;
-  signature: string;
-  examples: ChallengeExample[];
-  constraints: string[];
-}
-
-export interface ChallengeTestFailure {
-  input: Record<string, unknown>;
-  expected: unknown;
-  actual: unknown;
-}
-
-export interface ChallengeSubmitResponse {
-  passed: boolean;
-  status: "passed" | "failed" | "error" | "timeout";
-  total_tests: number;
-  passed_count: number;
-  first_failure: ChallengeTestFailure | null;
-  error: string | null;
-}
-
-export interface ChallengeHintResponse {
-  hint: string;
+  reason: string;
 }
 
 export interface PitchCard {
@@ -135,6 +87,7 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export function useCreateAnalysis() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (form: FormData): Promise<AnalysisResult> => {
       const { analysis_id } = await apiRequest<AnalysisCreateResponse>(
@@ -145,6 +98,17 @@ export function useCreateAnalysis() {
         `${API}/analysis/${encodeURIComponent(analysis_id)}/summary`,
       );
       return { analysisId: analysis_id, ...summary };
+    },
+    onSuccess: ({ analysisId }) => {
+      // Gera/cacheia as recomendações logo após o match — página fica instantânea.
+      // Non-blocking: a página ainda funciona standalone se o prefetch falhar.
+      void queryClient.prefetchQuery({
+        queryKey: ["analysis-code-challenges", analysisId],
+        queryFn: () =>
+          apiRequest<LeetCodeProblem[]>(
+            `${API}/analysis/${encodeURIComponent(analysisId)}/code-challenges`,
+          ),
+      });
     },
   });
 }
@@ -183,56 +147,6 @@ export function useAnalysisCodeChallenges(analysisId: string) {
     enabled: !!analysisId,
     retry: false,
     staleTime: Infinity,
-  });
-}
-
-export function useChallenges() {
-  return useQuery({
-    queryKey: ["challenges"],
-    queryFn: () => apiRequest<ChallengeSummary[]>(`${API}/challenges`),
-    retry: false,
-    staleTime: Infinity,
-  });
-}
-
-export function useChallenge(slug: string | null) {
-  return useQuery({
-    queryKey: ["challenge", slug],
-    queryFn: () =>
-      apiRequest<ChallengeDetail>(
-        `${API}/challenges/${encodeURIComponent(slug ?? "")}`,
-      ),
-    enabled: !!slug,
-    retry: false,
-    staleTime: Infinity,
-  });
-}
-
-export function useSubmitChallenge() {
-  return useMutation({
-    mutationFn: ({ slug, code }: { slug: string; code: string }) =>
-      apiRequest<ChallengeSubmitResponse>(
-        `${API}/challenges/${encodeURIComponent(slug)}/submit`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code }),
-        },
-      ),
-  });
-}
-
-export function useChallengeHint() {
-  return useMutation({
-    mutationFn: ({ slug, code }: { slug: string; code: string }) =>
-      apiRequest<ChallengeHintResponse>(
-        `${API}/challenges/${encodeURIComponent(slug)}/hint`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code }),
-        },
-      ),
   });
 }
 
@@ -286,23 +200,5 @@ export function useContext(gapId: string) {
     queryFn: () => apiRequest<ContextResponse>(`${API}/context/${encodeURIComponent(gapId)}`),
     staleTime: Infinity,
     enabled: !!gapId,
-  });
-}
-
-export function useEvaluateSolution() {
-  return useMutation({
-    mutationFn: (body: {
-      analysis_id: string;
-      slug: string;
-      title: string;
-      description: string;
-      solution: string;
-      language: string;
-    }) =>
-      apiRequest<LeetCodeEvaluateResponse>(`${API}/evaluate-solution`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }),
   });
 }

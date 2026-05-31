@@ -252,7 +252,7 @@ export function AnalysisSummaryPage() {
                     Desafios Técnicos
                   </span>
                   <span className="block text-gray-500 text-xs mt-0.5">
-                    Problemas focados em suas falhas
+                    Problemas focados nestes pontos
                   </span>
                 </div>
               </button>

@@ -1,7 +1,6 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Favicon from "/public/favicon.svg?react";
 
 export default function LandingHeader() {
   const [open, setOpen] = useState(false);
@@ -9,7 +8,6 @@ export default function LandingHeader() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#171717] backdrop-blur-md border-b border-gray-700">
       <div className="max-w-6xl mx-auto flex items-center justify-between h-16 px-4">
         <div className="flex items-center gap-3">
-          <Favicon className="w-12 h-12" />
           <span className="font-bold text-primary-500">CareerSync</span>
         </div>
 

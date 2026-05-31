@@ -1,4 +1,5 @@
 import FaqItem from "./FaqItem";
+import AnimatedSection from "../common/AnimatedSection";
 
 const faqs = [
   {
@@ -24,14 +25,23 @@ export default function FaqSection() {
     <section id="faq" className="py-20">
       <div className="max-w-3xl mx-auto px-4">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-semibold text-white">
-            Perguntas frequentes
-          </h2>
+          <AnimatedSection animation="fade-up" delay={0} duration={400}>
+            <h2 className="text-2xl font-semibold text-white">
+              Perguntas frequentes
+            </h2>
+          </AnimatedSection>
         </div>
 
         <div className="space-y-2">
-          {faqs.map((f) => (
-            <FaqItem key={f.q} question={f.q} answer={f.a} />
+          {faqs.map((f, i) => (
+            <AnimatedSection
+              key={f.q}
+              animation="fade-up"
+              delay={i * 100}
+              duration={500}
+            >
+              <FaqItem question={f.q} answer={f.a} />
+            </AnimatedSection>
           ))}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import StepItem from "./StepItem";
+import AnimatedSection from "../common/AnimatedSection";
 
 const steps = [
   {
@@ -24,17 +25,33 @@ export default function HowItWorksSection() {
     <section id="how-it-works" className="py-20 bg-[#171717]">
       <div className="max-w-6xl mx-auto px-4 lg:px-0">
         <div className="text-center mb-10">
-          <h2 className="text-2xl font-semibold text-white">Como funciona</h2>
-          <p className="text-neutral-300 mt-2">
-            Quatro passos para chegar pronto na entrevista.
-          </p>
+          <AnimatedSection
+            animation="fade-up"
+            delay={0}
+            duration={400}
+            className="mb-2"
+          >
+            <h2 className="text-2xl font-semibold text-white">Como funciona</h2>
+          </AnimatedSection>
+
+          <AnimatedSection animation="fade-up" delay={100} duration={400}>
+            <p className="text-neutral-300 mt-2">
+              Quatro passos para chegar pronto na entrevista.
+            </p>
+          </AnimatedSection>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {steps.map((s, i) => (
-            <div key={s.title} className="p-4">
+            <AnimatedSection
+              key={s.title}
+              animation={i % 2 === 0 ? "fade-right" : "fade-left"}
+              delay={i * 120}
+              duration={600}
+              className="p-4"
+            >
               <StepItem number={i + 1} title={s.title} desc={s.desc} />
-            </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

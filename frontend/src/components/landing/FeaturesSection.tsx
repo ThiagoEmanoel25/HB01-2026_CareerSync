@@ -1,5 +1,6 @@
 import FeatureCard from "./FeatureCard";
 import { FileText, Target, Calendar, Code, Mic, Cpu } from "lucide-react";
+import AnimatedSection from "../common/AnimatedSection";
 
 const features = [
   {
@@ -38,23 +39,48 @@ export default function FeaturesSection() {
   return (
     <section id="features" className="max-w-6xl mx-auto px-4 py-20">
       <div className="text-center mb-10">
-        <div className="inline-block bg-primary-500/10 text-primary-700 px-3 py-1 rounded-full text-sm mb-2">
-          Funcionalidades
-        </div>
-        <h2 className="text-2xl font-semibold text-white">
-          Tudo que você precisa para se destacar
-        </h2>
-        <p className="text-neutral-300 mt-2">
-          Do upload do currículo ao simulador de entrevista — em uma única
-          plataforma.
-        </p>
+        <AnimatedSection
+          animation="fade"
+          delay={0}
+          duration={400}
+          className="mb-2"
+        >
+          <div className="inline-block bg-primary-500/10 text-primary-700 px-3 py-1 rounded-full text-sm">
+            Funcionalidades
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection
+          animation="fade-up"
+          delay={100}
+          duration={500}
+          className="mb-2"
+        >
+          <h2 className="text-2xl font-semibold text-white">
+            Tudo que você precisa para se destacar
+          </h2>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fade-up" delay={200} duration={500}>
+          <p className="text-neutral-300 mt-2">
+            Do upload do currículo ao simulador de entrevista — em uma única
+            plataforma.
+          </p>
+        </AnimatedSection>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {features.map((f) => (
-          <FeatureCard key={f.title} icon={f.icon} title={f.title}>
-            {f.desc}
-          </FeatureCard>
+        {features.map((f, i) => (
+          <AnimatedSection
+            key={f.title}
+            animation="zoom-in"
+            delay={(i % 3) * 100 + Math.floor(i / 3) * 150}
+            duration={500}
+          >
+            <FeatureCard icon={f.icon} title={f.title}>
+              {f.desc}
+            </FeatureCard>
+          </AnimatedSection>
         ))}
       </div>
     </section>

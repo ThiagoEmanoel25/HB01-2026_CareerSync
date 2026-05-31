@@ -71,9 +71,10 @@ export function NewAnalysisPage() {
     const file = fileRef.current?.files?.[0];
     if (!file || !jobText.trim()) return;
 
+    const normalizedJobTitle = jobTitle.trim() || "Vaga não especificada";
     const form = new FormData();
     form.append("resume", file);
-    form.append("job_title", jobTitle || "Vaga não especificada");
+    form.append("job_title", normalizedJobTitle);
     form.append("job_description", jobText);
 
     analyze(form, {
@@ -83,9 +84,9 @@ export function NewAnalysisPage() {
           score: res.match_score,
           gaps: res.gaps,
           summary: res.summary,
-          jobTitle: jobTitle || "Vaga não especificada",
+          jobTitle: normalizedJobTitle,
           jobDescription: jobText,
-          fileName: fileName,
+          fileName,
         });
 
         navigate("/summary", { state: { fromUpload: true } });

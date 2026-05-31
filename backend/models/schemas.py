@@ -4,8 +4,6 @@ from uuid import uuid4
 from pydantic import BaseModel, Field, model_validator
 
 
-# ── Analyze ──────────────────────────────────────────────────────────────────
-
 class Gap(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     skill: str
@@ -19,25 +17,20 @@ class AnalyzeResponse(BaseModel):
     summary: str
 
 
-# ── Analysis (novo contrato) ──────────────────────────────────────────────────
-
 class AnalysisCreateResponse(BaseModel):
     analysis_id: str
+
+
+class ResumeMeta(BaseModel):
+    filename: str
+    content_type: str
+    url: str
 
 
 class AnalysisDetailResponse(BaseModel):
     job_title: str
     job_description: str
-    resume: str  # PDF original codificado em base64
-
-
-class EvaluateSolutionRequest(BaseModel):
-    analysis_id: str
-    slug: str
-    title: str
-    description: str
-    solution: str
-    language: str
+    resume: ResumeMeta
 
 
 class EvaluateInterviewAnswerRequest(BaseModel):
@@ -46,8 +39,6 @@ class EvaluateInterviewAnswerRequest(BaseModel):
     gaps: list[str]
     round: int = Field(ge=1, le=3)
 
-
-# ── Roadmap ───────────────────────────────────────────────────────────────────
 
 class RoadmapRequest(BaseModel):
     session_id: str
@@ -63,8 +54,6 @@ class RoadmapTask(BaseModel):
     category: Literal["conceito", "pratica", "revisao"]
 
 
-# ── Context ───────────────────────────────────────────────────────────────────
-
 class ContextResponse(BaseModel):
     title: str
     definition: str
@@ -72,34 +61,15 @@ class ContextResponse(BaseModel):
     how_to_show: str
 
 
-# ── LeetCode ──────────────────────────────────────────────────────────────────
-
 class LeetCodeProblem(BaseModel):
     slug: str
     title: str
     difficulty: Literal["Easy", "Medium", "Hard"]
     category: str
+    url: str
+    description: str
     reason: str
 
-
-class LeetCodeEvaluateRequest(BaseModel):
-    slug: str
-    title: str
-    description: str
-    solution: str
-    language: str
-
-
-class LeetCodeEvaluateResponse(BaseModel):
-    correct: bool
-    time_complexity: str
-    space_complexity: str
-    strengths: list[str]
-    improvements: list[str]
-    optimal_hint: str
-
-
-# ── Pitch ─────────────────────────────────────────────────────────────────────
 
 class PitchRequest(BaseModel):
     candidate_json: dict
@@ -115,8 +85,6 @@ class PitchCard(BaseModel):
     vaga_connection: str
     relevance: str
 
-
-# ── Interview ─────────────────────────────────────────────────────────────────
 
 class InterviewStartRequest(BaseModel):
     gaps: list[str]

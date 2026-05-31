@@ -76,6 +76,7 @@ export default function FeaturesSection() {
             animation="zoom-in"
             delay={(i % 3) * 100 + Math.floor(i / 3) * 150}
             duration={500}
+            className="h-full"
           >
             <FeatureCard icon={f.icon} title={f.title}>
               {f.desc}

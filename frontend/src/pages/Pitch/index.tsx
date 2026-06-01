@@ -214,7 +214,7 @@ export function PitchPage() {
             title="Nenhum pitch disponível"
             description="Nenhuma experiência pôde ser mapeada a partir do seu currículo. Refaça a análise para tentar novamente."
             ctaLabel="Voltar para análise"
-            onCta={() => navigate("/summary")}
+            onCta={() => navigate(`/analysis/${analysisId}/summary`)}
           />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 items-start">

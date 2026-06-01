@@ -17,7 +17,7 @@ interface AnimatedSectionProps {
   duration?: number; // ms
   className?: string;
   threshold?: number;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 }
 
 const animationVariants: Record<AnimationType, Variants> = {

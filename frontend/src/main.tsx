@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import {
   MutationCache,

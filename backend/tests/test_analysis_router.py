@@ -3,6 +3,7 @@ import unittest
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("JWT_SECRET", "test-secret")
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.testclient import TestClient
@@ -10,10 +11,14 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
 from core.database import get_session
+from core.security import get_current_user
+from models.db_models import User
 from models.schemas import AnalyzeResponse, Gap
 from routers.analysis import router
 from services.llm_service import LLMService
 from services.pdf_service import PDFService
+
+TEST_USER = User(id="test-user-id", email="tester@example.com", password_hash="x")
 
 
 class FakePDFService:
@@ -75,6 +80,7 @@ class AnalysisRouterTest(unittest.TestCase):
         app.dependency_overrides[get_session] = get_test_session
         app.dependency_overrides[PDFService] = lambda: FakePDFService()
         app.dependency_overrides[LLMService] = lambda: self.fake_llm
+        app.dependency_overrides[get_current_user] = lambda: TEST_USER
 
         self.client = TestClient(app)
 

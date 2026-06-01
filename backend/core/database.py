@@ -26,6 +26,7 @@ _ANALYSIS_COLUMNS_TO_ENSURE: dict[str, str] = {
     "company_name": "VARCHAR",
     "strategic_questions": "JSON",
     "interview_rounds": "JSON",
+    "user_id": "VARCHAR",
 }
 
 

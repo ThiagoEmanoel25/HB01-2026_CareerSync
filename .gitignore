@@ -21,3 +21,5 @@ Thumbs.db
 # Local DB / runtime artifacts
 *.db
 *.log
+
+.claude/

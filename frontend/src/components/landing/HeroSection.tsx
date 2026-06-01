@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
 import HeroMockup from "./HeroMockup";
 import AnimatedSection from "../common/AnimatedSection";
+import { useAuthModal } from "../../store/authModal";
 
 export default function HeroSection() {
+  const show = useAuthModal((s) => s.show);
   return (
     <section className="max-w-6xl mx-auto px-6 lg:px-6 pt-28 pb-20">
       <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -51,12 +52,13 @@ export default function HeroSection() {
             className="mb-2"
           >
             <div className="flex gap-3 items-center">
-              <Link
-                to="/new"
+              <button
+                type="button"
+                onClick={() => show("register")}
                 className="bg-primary-500 hover:bg-primary-600 text-black px-5 py-3 rounded-md text-sm font-semibold"
               >
                 Começar gratuitamente
-              </Link>
+              </button>
               <a
                 href="#how-it-works"
                 className="text-sm text-primary-600 hover:underline"

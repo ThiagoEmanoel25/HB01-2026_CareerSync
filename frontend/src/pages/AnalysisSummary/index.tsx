@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Map, Code, Lightbulb, Mic } from "lucide-react";
 import { GapCard } from "../../components/GapCard";
 import { MatchScore } from "../../components/MatchScore";
@@ -41,6 +41,7 @@ const AiBubble = ({
 export function AnalysisSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { analysisId = "" } = useParams<{ analysisId: string }>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const matchScore = useSession((s) => s.matchScore);
   const summary = useSession((s) => s.summary);
@@ -203,7 +204,9 @@ export function AnalysisSummaryPage() {
                   level={gap.level}
                   reason={gap.reason}
                   onViewContext={(skill) =>
-                    navigate(`/context/${encodeURIComponent(skill)}`)
+                    navigate(
+                      `/analysis/${analysisId}/context/${encodeURIComponent(skill)}`,
+                    )
                   }
                 />
               ))}
@@ -223,7 +226,7 @@ export function AnalysisSummaryPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
-                onClick={() => navigate("/roadmap")}
+                onClick={() => navigate(`/analysis/${analysisId}/roadmap`)}
                 className="flex items-center gap-3 p-4 bg-[#171717] border border-gray-700 hover:border-[#3ecf8e] rounded-xl transition-all group"
               >
                 <div className="bg-[#3ecf8e]/10 p-2 rounded-lg text-[#3ecf8e] group-hover:scale-110 transition-transform">
@@ -240,7 +243,7 @@ export function AnalysisSummaryPage() {
               </button>
 
               <button
-                onClick={() => navigate("/code-challenge")}
+                onClick={() => navigate(`/analysis/${analysisId}/code-challenge`)}
                 className="flex items-center gap-3 p-4 bg-[#171717] border border-gray-700 hover:border-[#3ecf8e] rounded-xl transition-all group"
               >
                 <div className="bg-[#3ecf8e]/10 p-2 rounded-lg text-[#3ecf8e] group-hover:scale-110 transition-transform">
@@ -257,7 +260,7 @@ export function AnalysisSummaryPage() {
               </button>
 
               <button
-                onClick={() => navigate("/pitch")}
+                onClick={() => navigate(`/analysis/${analysisId}/pitch`)}
                 className="flex items-center gap-3 p-4 bg-[#171717] border border-gray-700 hover:border-[#3ecf8e] rounded-xl transition-all group"
               >
                 <div className="bg-[#3ecf8e]/10 p-2 rounded-lg text-[#3ecf8e] group-hover:scale-110 transition-transform">
@@ -274,7 +277,7 @@ export function AnalysisSummaryPage() {
               </button>
 
               <button
-                onClick={() => navigate("/interview")}
+                onClick={() => navigate(`/analysis/${analysisId}/interview`)}
                 className="flex items-center gap-3 p-4 bg-[#171717] border border-gray-700 hover:border-[#3ecf8e] rounded-xl transition-all group"
               >
                 <div className="bg-[#3ecf8e]/10 p-2 rounded-lg text-[#3ecf8e] group-hover:scale-110 transition-transform">

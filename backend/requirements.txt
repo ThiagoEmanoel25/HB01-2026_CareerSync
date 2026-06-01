@@ -9,3 +9,9 @@ pdfplumber==0.11.4
 httpx==0.28.1
 python-dotenv==1.0.1
 psycopg2-binary==2.9.10
+passlib==1.7.4
+# bcrypt pinado em 4.0.1: passlib 1.7.4 não é compatível com bcrypt>=4.1
+# (quebra na detecção de backend com "password cannot be longer than 72 bytes").
+bcrypt==4.0.1
+python-jose[cryptography]==3.3.0
+email-validator==2.2.0

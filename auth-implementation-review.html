@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Review da implementação de autenticação JWT</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101112;
+        --panel: #181a1b;
+        --panel-2: #202324;
+        --text: #f4f5f5;
+        --muted: #a6adad;
+        --line: #303536;
+        --accent: #3ecf8e;
+        --warn: #f4b84a;
+        --danger: #ff6b6b;
+        --info: #7cb7ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0 64px;
+      }
+
+      header {
+        padding: 32px 0 28px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.25rem);
+        line-height: 1.05;
+      }
+
+      h2 {
+        margin-top: 34px;
+        margin-bottom: 14px;
+        font-size: 1.35rem;
+      }
+
+      h3 {
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      code {
+        padding: 2px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #111314;
+        color: #e8eeee;
+        font-size: 0.92em;
+      }
+
+      .lede {
+        max-width: 760px;
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+        padding: 6px 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .pill strong {
+        color: var(--text);
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 18px;
+      }
+
+      .card.good {
+        border-color: rgba(62, 207, 142, 0.35);
+      }
+
+      .card.warn {
+        border-color: rgba(244, 184, 74, 0.45);
+      }
+
+      .card.danger {
+        border-color: rgba(255, 107, 107, 0.5);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .tag {
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .tag.good {
+        background: rgba(62, 207, 142, 0.12);
+        color: var(--accent);
+      }
+
+      .tag.warn {
+        background: rgba(244, 184, 74, 0.12);
+        color: var(--warn);
+      }
+
+      .tag.danger {
+        background: rgba(255, 107, 107, 0.12);
+        color: var(--danger);
+      }
+
+      .tag.info {
+        background: rgba(124, 183, 255, 0.12);
+        color: var(--info);
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      .file-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .file-list code {
+        display: block;
+        width: 100%;
+        overflow-wrap: anywhere;
+      }
+
+      .finding {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 16px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .finding + .finding {
+        margin-top: 12px;
+      }
+
+      .severity {
+        width: max-content;
+        height: max-content;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .p1 {
+        background: rgba(255, 107, 107, 0.14);
+        color: var(--danger);
+      }
+
+      .p2 {
+        background: rgba(244, 184, 74, 0.14);
+        color: var(--warn);
+      }
+
+      .p3 {
+        background: rgba(124, 183, 255, 0.14);
+        color: var(--info);
+      }
+
+      .check {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .fail {
+        color: var(--danger);
+        font-weight: 700;
+      }
+
+      .note {
+        border-left: 3px solid var(--accent);
+        padding: 12px 14px;
+        background: rgba(62, 207, 142, 0.08);
+        color: #d8efe6;
+      }
+
+      footer {
+        margin-top: 36px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          width: min(100% - 20px, 1120px);
+          padding-top: 22px;
+        }
+
+        .grid.two,
+        .grid.three,
+        .file-list {
+          grid-template-columns: 1fr;
+        }
+
+        .finding {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Review da implementação de auth email/senha + JWT</h1>
+        <p class="lede">
+          Relatório técnico sobre a feature implementada em 31/05/2026:
+          autenticação própria com JWT, isolamento de análises por usuário,
+          rotas frontend com <code>analysisId</code> e histórico vindo do
+          servidor.
+        </p>
+        <div class="status-row">
+          <span class="pill"><strong>Status geral:</strong> bom desenho, com ajustes antes de merge</span>
+          <span class="pill"><strong>Frontend build:</strong> passou</span>
+          <span class="pill"><strong>Pytest:</strong> não executou por ambiente incompleto</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Resumo executivo</h2>
+        <div class="grid three">
+          <article class="card good">
+            <span class="tag good">Correto</span>
+            <h3>Arquitetura principal</h3>
+            <p class="muted">
+              A escolha por módulo isolado de auth foi seguida: segurança em
+              <code>core/security.py</code>, rotas em <code>routers/auth.py</code>,
+              schemas próprios e dependência <code>get_current_user</code>.
+            </p>
+          </article>
+          <article class="card good">
+            <span class="tag good">Correto</span>
+            <h3>Dados por usuário</h3>
+            <p class="muted">
+              <code>Analysis.user_id</code> aponta para <code>users.id</code>,
+              novas análises gravam o dono e as buscas por id retornam 404
+              quando a análise não pertence ao usuário logado.
+            </p>
+          </article>
+          <article class="card warn">
+            <span class="tag warn">Ajustar</span>
+            <h3>Estado local pós-auth</h3>
+            <p class="muted">
+              O ponto mais sensível está no frontend: o estado persistido da
+              análise não é limpo no logout e o <code>AnalysisGate</code> confia
+              no Zustand para liberar uma análise sem validar no servidor.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>O que foi implementado</h2>
+        <div class="grid two">
+          <article class="card">
+            <span class="tag info">Backend</span>
+            <ul>
+              <li><code>config.py</code>: <code>jwt_secret</code> obrigatório e <code>jwt_expire_days = 7</code>.</li>
+              <li><code>backend/.env.example</code>: adiciona <code>JWT_SECRET=</code>.</li>
+              <li><code>requirements.txt</code>: adiciona <code>passlib</code>, <code>bcrypt==4.0.1</code>, <code>python-jose[cryptography]</code> e <code>email-validator</code>.</li>
+              <li><code>db_models.py</code>: cria <code>User</code> com <code>__tablename__ = "users"</code> e adiciona <code>Analysis.user_id</code>.</li>
+              <li><code>database.py</code>: inclui <code>user_id</code> em <code>_ANALYSIS_COLUMNS_TO_ENSURE</code>.</li>
+              <li><code>core/security.py</code>: hash bcrypt, verificação de senha, JWT HS256 e dependency de usuário atual.</li>
+              <li><code>routers/auth.py</code>: registro, login e <code>/auth/me</code>.</li>
+              <li><code>routers/analysis.py</code>: proteção em todas as rotas, checagem de posse e novo <code>GET /analysis</code>.</li>
+              <li><code>context.py</code> e <code>interview.py</code>: rotas passam a exigir autenticação.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag info">Frontend</span>
+            <ul>
+              <li><code>store/auth.ts</code>: store persistido com token, usuário e logout.</li>
+              <li><code>lib/api.ts</code>: injeta Bearer, trata 401 com token e adiciona hooks de auth/listagem.</li>
+              <li><code>pages/Login</code> e <code>pages/Register</code>: telas públicas com redirect para <code>/new</code>.</li>
+              <li><code>router.tsx</code>: <code>RequireAuth</code>, rotas públicas e rotas <code>/analysis/:analysisId/*</code>.</li>
+              <li><code>AnalysisGate</code>: carrega detalhe + summary por id da URL e hidrata <code>useSession</code>.</li>
+              <li><code>HistoryList</code>: usa histórico server-side.</li>
+              <li><code>Sidebar</code>: mostra email e botão sair.</li>
+              <li><code>NavigationMenu</code> e páginas internas: navegação agora usa rotas com id da análise.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Pontos fortes</h2>
+        <div class="grid two">
+          <article class="card good">
+            <h3>Isolamento de ownership no backend</h3>
+            <p class="muted">
+              A função <code>_get_analysis_or_404</code> centraliza a validação
+              de posse. Isso reduz o risco de esquecer filtro por usuário nas
+              sub-rotas de análise.
+            </p>
+          </article>
+          <article class="card good">
+            <h3>URLs persistentes por análise</h3>
+            <p class="muted">
+              A troca para <code>/analysis/:analysisId/*</code> foi a decisão
+              certa. O histórico server-side passa a funcionar com refresh,
+              link direto e navegação do browser.
+            </p>
+          </article>
+          <article class="card good">
+            <h3>Tratamento de credenciais</h3>
+            <p class="muted">
+              Registro normaliza email; login usa mensagem genérica; senha
+              curta fica a cargo do Pydantic; bcrypt foi pinado para evitar
+              incompatibilidade conhecida com passlib.
+            </p>
+          </article>
+          <article class="card good">
+            <h3>Escopo de segurança simples</h3>
+            <p class="muted">
+              Access token único de 7 dias, sem refresh token e sem blacklist,
+              é coerente com o escopo do produto e reduz complexidade operacional.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Críticas e riscos</h2>
+
+        <article class="finding">
+          <div class="severity p1">P1</div>
+          <div>
+            <h3>Logout não limpa o estado persistido da análise</h3>
+            <p class="muted">
+              <code>Sidebar.handleLogout()</code> chama apenas
+              <code>useAuth.logout()</code>. O store <code>prep-ai-session</code>
+              continua com <code>analysisId</code>, <code>matchScore</code>,
+              summary, gaps e outros dados da conta anterior. Depois de login
+              com outro usuário no mesmo browser, o menu pode continuar
+              habilitado e o <code>AnalysisGate</code> pode liberar a tela sem
+              validar no backend se o id local bater.
+            </p>
+            <p class="muted">
+              Referências: <code>frontend/src/components/Sidebar/index.tsx:24</code>,
+              <code>frontend/src/components/AnalysisGate/index.tsx:26</code>.
+            </p>
+            <p class="note">
+              Correção recomendada: no logout, limpar <code>useSession</code>,
+              <code>useProgress</code> se necessário e cache do React Query.
+              Melhor ainda: guardar no session store o <code>userId</code> dono
+              do snapshot e considerar carregado apenas se esse dono bater com
+              <code>auth.user.id</code>.
+            </p>
+          </div>
+        </article>
+
+        <article class="finding">
+          <div class="severity p1">P1</div>
+          <div>
+            <h3><code>AnalysisGate</code> confia demais no Zustand</h3>
+            <p class="muted">
+              A linha <code>alreadyLoaded = sessionAnalysisId === analysisId &amp;&amp; matchScore !== null</code>
+              faz o gate pular completamente as requests de detalhe/summary.
+              Isso é útil para performance, mas vira bypass de validação
+              client-side quando há estado persistido antigo ou troca de conta.
+            </p>
+            <p class="muted">
+              Referência: <code>frontend/src/components/AnalysisGate/index.tsx:26-30</code>.
+            </p>
+            <p class="note">
+              Correção recomendada: sempre validar ownership pelo servidor ao
+              entrar numa URL de análise, ou condicionar o fast-path a um
+              snapshot marcado como criado/carregado para o usuário autenticado atual.
+            </p>
+          </div>
+        </article>
+
+        <article class="finding">
+          <div class="severity p2">P2</div>
+          <div>
+            <h3>Renderiza filhos antes de hidratar o store</h3>
+            <p class="muted">
+              Quando <code>detail.data</code> e <code>summary.data</code> chegam,
+              o gate retorna <code>&lt;Outlet /&gt;</code> antes do
+              <code>useEffect</code> aplicar os dados no Zustand. Isso pode
+              causar um frame com dados vazios ou da análise anterior.
+            </p>
+            <p class="muted">
+              Referências: <code>frontend/src/components/AnalysisGate/index.tsx:32-38</code>,
+              <code>frontend/src/components/AnalysisGate/index.tsx:63</code>.
+            </p>
+            <p class="note">
+              Correção recomendada: hidratar de forma síncrona antes de renderizar
+              o Outlet, ou trocar as páginas para lerem direto do React Query em
+              vez de dependerem do Zustand como intermediário.
+            </p>
+          </div>
+        </article>
+
+        <article class="finding">
+          <div class="severity p2">P2</div>
+          <div>
+            <h3>Requests de TTS não passam pelo cliente HTTP central</h3>
+            <p class="muted">
+              <code>useInterviewTTS</code> monta <code>fetch</code> manualmente.
+              Ele envia o Bearer, mas não usa <code>apiRequest</code>; por isso,
+              um 401 de token expirado não dispara o logout/redirect centralizado.
+            </p>
+            <p class="muted">
+              Referência: <code>frontend/src/lib/api.ts:449-469</code>.
+            </p>
+            <p class="note">
+              Correção recomendada: criar uma variante de <code>apiRequest</code>
+              para respostas binárias/stream ou reutilizar a mesma rotina de
+              tratamento de 401 no fetch manual.
+            </p>
+          </div>
+        </article>
+
+        <article class="finding">
+          <div class="severity p2">P2</div>
+          <div>
+            <h3>Testes antigos ainda parecem desatualizados para auth</h3>
+            <p class="muted">
+              O novo <code>test_auth_router.py</code> cobre registro, login,
+              ownership e rotas protegidas. Porém <code>test_analysis_router.py</code>
+              e <code>test_code_challenges.py</code> ainda fazem chamadas
+              <code>/analysis/*</code> sem header de autorização em vários pontos.
+              Com auth obrigatória, esses testes devem ser atualizados ou vão
+              falhar quando a suíte rodar de fato.
+            </p>
+            <p class="note">
+              Correção recomendada: criar helper de usuário/token nos testes
+              legados e criar análises via rota autenticada ou inserir
+              <code>user_id</code> compatível no setup.
+            </p>
+          </div>
+        </article>
+
+        <article class="finding">
+          <div class="severity p3">P3</div>
+          <div>
+            <h3>URL do currículo agora exige header, mas é retornada como link simples</h3>
+            <p class="muted">
+              <code>AnalysisDetailResponse.resume.url</code> continua retornando
+              <code>/analysis/{id}/resume</code>. Como a rota agora exige Bearer,
+              abrir esse URL diretamente no browser não envia o token. Se o app
+              usar esse link para preview/download sem fetch autenticado, o PDF
+              vai falhar com 401.
+            </p>
+            <p class="note">
+              Correção recomendada: se houver preview/download, buscar o PDF via
+              fetch autenticado e criar <code>ObjectURL</code>, ou adicionar um
+              endpoint com URL assinada temporária.
+            </p>
+          </div>
+        </article>
+
+        <article class="finding">
+          <div class="severity p3">P3</div>
+          <div>
+            <h3>Header Bearer é tratado de forma case-sensitive</h3>
+            <p class="muted">
+              <code>get_current_user</code> exige <code>Authorization</code>
+              começando exatamente por <code>Bearer </code>. O frontend atual
+              envia assim, então funciona, mas o esquema HTTP é normalmente
+              tratado como case-insensitive.
+            </p>
+            <p class="note">
+              Correção recomendada: aceitar <code>bearer</code> em qualquer
+              caixa usando split e comparação com <code>.lower()</code>.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section>
+        <h2>Verificação executada</h2>
+        <div class="grid two">
+          <article class="card good">
+            <span class="tag good">Passou</span>
+            <h3>Frontend</h3>
+            <p class="muted">
+              Comando: <code>npm run build</code> em <code>frontend/</code>.
+              Resultado: TypeScript + Vite build concluíram com sucesso.
+            </p>
+          </article>
+          <article class="card warn">
+            <span class="tag warn">Inconclusivo</span>
+            <h3>Backend</h3>
+            <p class="muted">
+              <code>python -m pytest</code> falhou na coleta porque o Python
+              global não tem <code>fastapi</code>/<code>httpx</code>. Tentativa
+              com <code>backend/.venv/Scripts/python.exe -m pytest tests</code>
+              falhou porque o venv não tem <code>pytest</code>.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Arquivos principais revisados</h2>
+        <div class="file-list">
+          <code>backend/core/config.py</code>
+          <code>backend/core/security.py</code>
+          <code>backend/models/db_models.py</code>
+          <code>backend/models/schemas.py</code>
+          <code>backend/routers/auth.py</code>
+          <code>backend/routers/analysis.py</code>
+          <code>backend/routers/context.py</code>
+          <code>backend/routers/interview.py</code>
+          <code>frontend/src/store/auth.ts</code>
+          <code>frontend/src/lib/api.ts</code>
+          <code>frontend/src/router.tsx</code>
+          <code>frontend/src/components/AnalysisGate/index.tsx</code>
+          <code>frontend/src/components/HistoryList/index.tsx</code>
+          <code>frontend/src/components/NavigationMenu/index.tsx</code>
+          <code>frontend/src/components/Sidebar/index.tsx</code>
+          <code>frontend/src/pages/NewAnalysis/index.tsx</code>
+        </div>
+      </section>
+
+      <section>
+        <h2>Recomendação antes de merge</h2>
+        <div class="card danger">
+          <span class="tag danger">Bloqueante</span>
+          <p>
+            Corrigir primeiro o vazamento de estado entre contas: limpar stores
+            no logout/login e fazer o <code>AnalysisGate</code> validar a análise
+            contra o usuário atual antes de renderizar páginas internas.
+          </p>
+        </div>
+        <div class="card warn" style="margin-top: 12px">
+          <span class="tag warn">Importante</span>
+          <p>
+            Atualizar os testes legados de análise/code challenges para criar
+            usuário/token e usar headers. Depois, instalar as dependências de
+            teste no venv e rodar a suíte backend completa.
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        Relatório gerado como arquivo estático na raiz do projeto. Observação:
+        o worktree também tinha conflitos não resolvidos em
+        <code>.claude/settings.local.json</code> e <code>.gitignore</code> no
+        momento da revisão; eles parecem externos à feature, mas precisam ser
+        resolvidos antes de commit/merge.
+      </footer>
+    </main>
+  </body>
+</html>

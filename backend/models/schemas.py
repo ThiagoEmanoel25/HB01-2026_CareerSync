@@ -1,7 +1,37 @@
+from datetime import datetime
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, model_validator
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserPublic(BaseModel):
+    id: str
+    email: str
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserPublic
+
+
+class AnalysisListItem(BaseModel):
+    analysis_id: str
+    job_title: str
+    company_name: str | None
+    created_at: datetime
+    match_score: int | None
 
 
 class Gap(BaseModel):

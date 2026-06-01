@@ -1,4 +1,5 @@
 import AnimatedSection from "../common/AnimatedSection";
+import BorderlessLogo from "../../assets/borderless-logo.svg?react";
 
 export default function LandingFooter() {
   return (
@@ -12,6 +13,16 @@ export default function LandingFooter() {
             <div className="text-neutral-400 text-sm">
               Sincronizando você e sua vaga!
             </div>
+            <a
+              href="https://www.borderlesscoding.com/pt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 mt-2 text-neutral-400 text-sm hover:text-neutral-200 transition-colors w-fit"
+            >
+              Apoiado por
+              <BorderlessLogo className="h-4 w-auto inline-block" />
+              Borderless
+            </a>
           </div>
 
           <div>

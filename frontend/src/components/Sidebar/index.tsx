@@ -2,9 +2,12 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  LogOut,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { HistoryList } from "../HistoryList";
 import { NavigationMenu } from "../NavigationMenu";
+import { useAuth } from "../../store/auth";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -14,6 +17,16 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: SidebarProps) {
+  const navigate = useNavigate();
+  const user = useAuth((s) => s.user);
+  const logout = useAuth((s) => s.logout);
+
+  function handleLogout() {
+    logout();
+    onClose();
+    navigate("/");
+  }
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-50 bg-[#171717]/70 border-r border-gray-700 flex flex-col gap-6 shrink-0 transition-all duration-300 ease-in-out
@@ -71,10 +84,22 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
         </div>
       </div>
 
-      <div
-        className={`shrink-0 mt-auto text-xs text-[#9a9a9a] px-5 pb-6 transition-all duration-300 ${isCollapsed ? "text-center px-0" : ""}`}
-      >
-        {isCollapsed ? "©" : "© CareerSync"}
+      <div className="shrink-0 mt-auto border-t border-gray-700 px-3 py-4">
+        {!isCollapsed && user && (
+          <p className="px-2 mb-2 text-xs text-[#9a9a9a] truncate" title={user.email}>
+            {user.email}
+          </p>
+        )}
+        <button
+          onClick={handleLogout}
+          title={isCollapsed ? "Sair" : undefined}
+          className={`flex items-center gap-3 text-sm font-medium text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg py-2.5 transition-colors w-full ${
+            isCollapsed ? "justify-center px-0" : "px-3"
+          }`}
+        >
+          <LogOut size={18} strokeWidth={2} className="shrink-0" />
+          {!isCollapsed && <span>Sair</span>}
+        </button>
       </div>
     </aside>
   );

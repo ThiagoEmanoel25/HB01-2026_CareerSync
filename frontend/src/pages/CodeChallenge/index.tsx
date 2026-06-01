@@ -95,7 +95,7 @@ export function CodeChallengePage() {
           title="Nenhuma recomendação disponível"
           description="Ainda não há desafios recomendados para os seus gaps. Refaça a análise para gerá-los."
           ctaLabel="Voltar para análise"
-          onCta={() => navigate("/summary")}
+          onCta={() => navigate(`/analysis/${analysisId}/summary`)}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">

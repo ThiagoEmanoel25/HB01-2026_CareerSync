@@ -1,6 +1,8 @@
 import AnimatedSection from "../common/AnimatedSection";
+import { useAuthModal } from "../../store/authModal";
 
 export default function CtaSection() {
+  const show = useAuthModal((s) => s.show);
   return (
     <section className="py-20 bg-[#171717] text-white">
       <div className="max-w-4xl mx-auto px-4 text-center">
@@ -33,12 +35,13 @@ export default function CtaSection() {
           duration={500}
           className="mb-3"
         >
-          <a
-            href="/new"
+          <button
+            type="button"
+            onClick={() => show("register")}
             className="inline-block bg-primary-500 text-black px-5 py-3 rounded-md font-semibold hover:bg-primary-600 transition-colors"
           >
             Fazer uma análise gratuita
-          </a>
+          </button>
         </AnimatedSection>
 
         <AnimatedSection

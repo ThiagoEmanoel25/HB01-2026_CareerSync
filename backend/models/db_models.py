@@ -5,6 +5,19 @@ from sqlalchemy import JSON, Column, LargeBinary
 from sqlmodel import Field, SQLModel
 
 
+class User(SQLModel, table=True):
+    """Usuário do app — autenticação por email + senha."""
+
+    # Tabela explicitamente "users" (plural) para evitar colisão com a palavra
+    # reservada USER em alguns dialetos SQL.
+    __tablename__ = "users"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    email: str = Field(unique=True, index=True)
+    password_hash: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class Analysis(SQLModel, table=True):
     """Entidade única que concentra o ciclo de vida de uma análise."""
 
@@ -15,6 +28,10 @@ class Analysis(SQLModel, table=True):
     company_name: str | None = Field(default=None)
     resume: bytes = Field(sa_column=Column(LargeBinary, nullable=False))
     resume_text: str
+
+    # Dono da análise. Nullable para suportar linhas legadas (criadas antes da
+    # coluna) — análises órfãs ficam inacessíveis (ninguém as vê).
+    user_id: str | None = Field(default=None, foreign_key="users.id", index=True)
 
     summary: dict | None = Field(default=None, sa_column=Column(JSON))
     roadmap: list | None = Field(default=None, sa_column=Column(JSON))

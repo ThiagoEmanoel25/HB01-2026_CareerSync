@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { ContextPage } from "./pages/Context";
@@ -8,13 +8,23 @@ import { PitchPage } from "./pages/Pitch";
 import { RoadmapPage } from "./pages/Roadmap";
 import { NewAnalysisPage } from "./pages/NewAnalysis";
 import { AnalysisSummaryPage } from "./pages/AnalysisSummary";
-import { useSession } from "./store/session";
+import { useAuth } from "./store/auth";
+import { useAuthModal } from "./store/authModal";
 import { Layout } from "./components/Layout";
+import { AnalysisGate } from "./components/AnalysisGate";
+import { AuthModal } from "./components/AuthModal";
 import LandingPage from "./pages/LandingPage";
 
-function RequireAnalysis({ children }: { children: ReactNode }) {
-  const matchScore = useSession((s) => s.matchScore);
-  if (matchScore === null) return <Navigate to="/new" replace />;
+function RequireAuth({ children }: { children: ReactNode }) {
+  const token = useAuth((s) => s.token);
+  const show = useAuthModal((s) => s.show);
+
+  // Sem sessão: abre o modal de login e volta pra landing (não há mais /login).
+  useEffect(() => {
+    if (!token) show("login");
+  }, [token, show]);
+
+  if (!token) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -25,64 +35,30 @@ export function AppRouter() {
     >
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route element={<Layout />}>
+
+        <Route
+          element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }
+        >
           <Route path="/new" element={<NewAnalysisPage />} />
 
-          <Route
-            path="/summary"
-            element={
-              <RequireAnalysis>
-                <AnalysisSummaryPage />
-              </RequireAnalysis>
-            }
-          />
-
-          <Route
-            path="/roadmap"
-            element={
-              <RequireAnalysis>
-                <RoadmapPage />
-              </RequireAnalysis>
-            }
-          />
-
-          <Route
-            path="/context/:gapId"
-            element={
-              <RequireAnalysis>
-                <ContextPage />
-              </RequireAnalysis>
-            }
-          />
-
-          <Route
-            path="/code-challenge"
-            element={
-              <RequireAnalysis>
-                <CodeChallengePage />
-              </RequireAnalysis>
-            }
-          />
-
-          <Route
-            path="/pitch"
-            element={
-              <RequireAnalysis>
-                <PitchPage />
-              </RequireAnalysis>
-            }
-          />
-
-          <Route
-            path="/interview"
-            element={
-              <RequireAnalysis>
-                <InterviewPage />
-              </RequireAnalysis>
-            }
-          />
+          <Route path="/analysis/:analysisId" element={<AnalysisGate />}>
+            <Route path="summary" element={<AnalysisSummaryPage />} />
+            <Route path="roadmap" element={<RoadmapPage />} />
+            <Route path="code-challenge" element={<CodeChallengePage />} />
+            <Route path="pitch" element={<PitchPage />} />
+            <Route path="interview" element={<InterviewPage />} />
+            <Route path="context/:gapId" element={<ContextPage />} />
+          </Route>
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      <AuthModal />
     </BrowserRouter>
   );
 }

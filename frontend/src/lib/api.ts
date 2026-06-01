@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useAuth, type AuthUser } from "../store/auth";
+
 const API = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
 export interface Gap {
@@ -151,20 +153,131 @@ async function fetchOnce<T>(url: string, init?: RequestInit): Promise<T> {
   }
 }
 
+/** Injeta o header Authorization a partir do token persistido no store de auth. */
+function withAuth(init?: RequestInit): RequestInit | undefined {
+  const token = useAuth.getState().token;
+  if (!token) return init;
+  return {
+    ...init,
+    headers: { ...(init?.headers ?? {}), Authorization: `Bearer ${token}` },
+  };
+}
+
+/**
+ * Sessão expirada/ inválida: 401 numa requisição que *enviou* token significa que
+ * o token não vale mais → desloga e manda para o login. Para as rotas de auth
+ * (login/register, sem token) o 401 é um erro de credencial normal e não deve
+ * redirecionar — vira mensagem no formulário.
+ */
+function maybeHandleUnauthorized(
+  url: string,
+  hadToken: boolean,
+  error: unknown,
+): void {
+  if (!(error instanceof ApiError) || error.status !== 401) return;
+  if (!hadToken || url.includes("/auth/")) return;
+  useAuth.getState().logout();
+  // Não há mais página /login: volta pra landing com o modal de login aberto
+  // via query param (o store em memória se perde nesse redirect "hard").
+  window.location.assign("/?auth=login");
+}
+
 /**
  * Cliente HTTP central. Única fonte de retry da aplicação: 1 nova tentativa
  * automática em timeout ou erro 5xx. As queries do React Query usam `retry: false`
- * para não duplicar tentativas.
+ * para não duplicar tentativas. Injeta o token de auth e trata 401 globalmente.
  */
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
+  const hadToken = useAuth.getState().token !== null;
+  const authedInit = withAuth(init);
   try {
-    return await fetchOnce<T>(url, init);
+    return await fetchOnce<T>(url, authedInit);
   } catch (error) {
     if (isIdempotent(init) && isRetryable(error)) {
-      return fetchOnce<T>(url, init);
+      try {
+        return await fetchOnce<T>(url, authedInit);
+      } catch (retryError) {
+        maybeHandleUnauthorized(url, hadToken, retryError);
+        throw retryError;
+      }
     }
+    maybeHandleUnauthorized(url, hadToken, error);
     throw error;
   }
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+export interface AnalysisListItem {
+  analysis_id: string;
+  job_title: string;
+  company_name: string | null;
+  created_at: string;
+  match_score: number | null;
+}
+
+function jsonBody(body: unknown): RequestInit {
+  return {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+}
+
+export function useRegister() {
+  const setAuth = useAuth((s) => s.setAuth);
+  return useMutation({
+    mutationFn: (body: { email: string; password: string }) =>
+      apiRequest<AuthResponse>(`${API}/auth/register`, jsonBody(body)),
+    onSuccess: (data) => setAuth(data.access_token, data.user),
+  });
+}
+
+export function useLogin() {
+  const setAuth = useAuth((s) => s.setAuth);
+  return useMutation({
+    mutationFn: (body: { email: string; password: string }) =>
+      apiRequest<AuthResponse>(`${API}/auth/login`, jsonBody(body)),
+    onSuccess: (data) => setAuth(data.access_token, data.user),
+  });
+}
+
+export function useMe() {
+  const token = useAuth((s) => s.token);
+  return useQuery({
+    queryKey: ["me"],
+    queryFn: () => apiRequest<AuthUser>(`${API}/auth/me`),
+    enabled: !!token,
+    retry: false,
+    staleTime: Infinity,
+  });
+}
+
+export function useAnalysisList() {
+  const token = useAuth((s) => s.token);
+  return useQuery({
+    queryKey: ["analysis-list"],
+    queryFn: () => apiRequest<AnalysisListItem[]>(`${API}/analysis`),
+    enabled: !!token,
+    retry: false,
+  });
+}
+
+export function useAnalysisSummary(analysisId: string) {
+  return useQuery({
+    queryKey: ["analysis-summary", analysisId],
+    queryFn: () =>
+      apiRequest<AnalyzeResponse>(
+        `${API}/analysis/${encodeURIComponent(analysisId)}/summary`,
+      ),
+    enabled: !!analysisId,
+    retry: false,
+    staleTime: Infinity,
+  });
 }
 
 export function useCreateAnalysis() {
@@ -181,6 +294,8 @@ export function useCreateAnalysis() {
       return { analysisId: analysis_id, ...summary };
     },
     onSuccess: ({ analysisId }) => {
+      // Nova análise entra no histórico server-side — invalida a lista.
+      void queryClient.invalidateQueries({ queryKey: ["analysis-list"] });
       // Gera/cacheia as recomendações logo após o match — página fica instantânea.
       // Non-blocking: a página ainda funciona standalone se o prefetch falhar.
       void queryClient.prefetchQuery({
@@ -337,9 +452,13 @@ export function useInterviewTTS() {
       question_text: string;
       voice?: "alloy" | "nova";
     }): Promise<ArrayBuffer> => {
+      const token = useAuth.getState().token;
       const res = await fetch(`${API}/interview/tts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ voice: "alloy", ...body }),
       });
       if (!res.ok || !res.body) {

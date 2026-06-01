@@ -12,7 +12,7 @@ import models.db_models  # noqa: F401 — registers SQLModel table metadata
 from core.config import settings
 from core.database import create_db_and_tables, engine
 from data.leetcode_seed import seed_leetcode
-from routers import analysis, context, interview
+from routers import analysis, auth, context, interview
 
 logger = logging.getLogger("prepai")
 
@@ -89,6 +89,7 @@ async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSON
     )
 
 
+app.include_router(auth.router)
 app.include_router(analysis.router)
 app.include_router(context.router)
 app.include_router(interview.router)

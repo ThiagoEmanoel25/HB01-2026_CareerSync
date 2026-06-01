@@ -12,7 +12,8 @@ import { useSession } from "../../store/session";
 
 interface NavigationItem {
   label: string;
-  to: string;
+  // Sufixo da rota, combinado com o analysisId atual: /analysis/:id/<suffix>.
+  suffix: string;
   icon: ReactNode;
 }
 
@@ -24,27 +25,27 @@ const NAVIGATION_ICONS_SIZE = {
 const NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Resumo da análise",
-    to: "/summary",
+    suffix: "summary",
     icon: <ScrollText {...NAVIGATION_ICONS_SIZE} />,
   },
   {
     label: "Plano de Estudos",
-    to: "/roadmap",
+    suffix: "roadmap",
     icon: <Map {...NAVIGATION_ICONS_SIZE} />,
   },
   {
     label: "Desafios Técnicos",
-    to: "/code-challenge",
+    suffix: "code-challenge",
     icon: <Code {...NAVIGATION_ICONS_SIZE} />,
   },
   {
     label: "Melhor Pitch",
-    to: "/pitch",
+    suffix: "pitch",
     icon: <Lightbulb {...NAVIGATION_ICONS_SIZE} />,
   },
   {
     label: "Simular Entrevista",
-    to: "/interview",
+    suffix: "interview",
     icon: <Mic {...NAVIGATION_ICONS_SIZE} />,
   },
 ];
@@ -57,7 +58,8 @@ interface NavigationMenuProps {
 export function NavigationMenu({ isCollapsed, onClose }: NavigationMenuProps) {
   const resetSession = useSession((s) => s.reset);
   const matchScore = useSession((s) => s.matchScore);
-  const hasAnalysis = matchScore !== null;
+  const analysisId = useSession((s) => s.analysisId);
+  const hasAnalysis = matchScore !== null && !!analysisId;
 
   const baseLinkStyle =
     "flex items-center text-sm font-medium transition-all duration-200 py-2.5 rounded-lg";
@@ -103,11 +105,12 @@ export function NavigationMenu({ isCollapsed, onClose }: NavigationMenuProps) {
 
       {NAVIGATION_ITEMS.map((item) => {
         const isDisabled = !hasAnalysis;
+        const to = isDisabled ? "#" : `/analysis/${analysisId}/${item.suffix}`;
 
         return (
           <NavLink
-            key={item.to}
-            to={isDisabled ? "#" : item.to}
+            key={item.suffix}
+            to={to}
             onClick={(e) => {
               if (isDisabled) {
                 e.preventDefault();

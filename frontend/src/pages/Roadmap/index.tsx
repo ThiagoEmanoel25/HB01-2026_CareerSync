@@ -60,7 +60,7 @@ export function RoadmapPage() {
   }
 
   function handleViewContext(gapId: string) {
-    navigate(`/context/${encodeURIComponent(gapId)}`);
+    navigate(`/analysis/${analysisId}/context/${encodeURIComponent(gapId)}`);
   }
 
   async function handleExportCalendar() {
@@ -139,7 +139,7 @@ export function RoadmapPage() {
           title="Nenhum roadmap disponível"
           description="A análise não gerou tarefas de estudo. Refaça a análise para tentar novamente."
           ctaLabel="Voltar para análise"
-          onCta={() => navigate("/summary")}
+          onCta={() => navigate(`/analysis/${analysisId}/summary`)}
         />
       )}
 
@@ -177,7 +177,7 @@ export function RoadmapPage() {
 
           {showChallengeCta && (
             <button
-              onClick={() => navigate("/code-challenge")}
+              onClick={() => navigate(`/analysis/${analysisId}/code-challenge`)}
               className="bg-[#3ecf8e] text-[#171717] font-semibold py-3 rounded-xl hover:bg-[#3ecf8e]/90 transition mt-2"
             >
               {isFullyComplete

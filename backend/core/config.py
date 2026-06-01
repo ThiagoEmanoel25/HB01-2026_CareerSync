@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 30.0
     # Observabilidade — opcional no hackathon. Vazio = Sentry desativado.
     sentry_dsn: str = ""
+    # Auth JWT (HS256). jwt_secret é obrigatório; jwt_expire_days controla a
+    # validade do access token (sem refresh token — ver design da auth).
+    jwt_secret: str
+    jwt_expire_days: int = 7
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

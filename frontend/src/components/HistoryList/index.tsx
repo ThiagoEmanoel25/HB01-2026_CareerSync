@@ -1,3 +1,4 @@
+import { MoreVertical } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 import { useAnalysisList } from "../../lib/api";
@@ -28,18 +29,31 @@ export function HistoryList({ onClose }: HistoryListProps) {
       {analyses.map((a) => {
         const isActive = a.analysis_id === currentAnalysisId;
         return (
-          <NavLink
+          <div
             key={a.analysis_id}
-            to={`/analysis/${a.analysis_id}/summary`}
-            onClick={onClose}
-            className={`flex-1 truncate py-1 px-2 block text-sm select-none rounded-lg transition-colors ${
-              isActive
-                ? "bg-[#3ecf8e]/10 text-[#3ecf8e]"
-                : "text-gray-300 hover:text-[#3ecf8e] hover:bg-white/5"
+            className={`group flex items-center gap-1.5 rounded-lg pr-1 transition-colors ${
+              isActive ? "bg-[#3ecf8e]/10" : "hover:bg-white/5"
             }`}
           >
-            {a.job_title}
-          </NavLink>
+            <button
+              type="button"
+              aria-label="Ações rápidas"
+              className="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-[#3ecf8e]/70 hover:text-[#3ecf8e] hover:bg-[#3ecf8e]/10 transition-colors"
+            >
+              <MoreVertical size={16} strokeWidth={2.5} />
+            </button>
+            <NavLink
+              to={`/analysis/${a.analysis_id}/summary`}
+              onClick={onClose}
+              className={`min-w-0 flex-1 truncate py-1.5 pr-1 text-sm select-none transition-colors ${
+                isActive
+                  ? "text-[#3ecf8e]"
+                  : "text-gray-300 group-hover:text-[#3ecf8e]"
+              }`}
+            >
+              {a.job_title}
+            </NavLink>
+          </div>
         );
       })}
     </>
